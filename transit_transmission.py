@@ -23,6 +23,7 @@ def get_arrivals(trains, user_station, line):
         current_trip["Line"] = line
         current_trip["N-S"] = train.direction
         current_trip["Direction"] = train.stop_time_updates[-1].stop_name
+        current_trip["Delay"] = train.has_delay_alert
         for station in train.stop_time_updates:
             if station.stop_name is not None:
                 if user_station in station.stop_name:
@@ -37,8 +38,6 @@ def get_arrivals(trains, user_station, line):
                     if current_trip["Arrival"] == 1440:
                         continue
                     station_arrivals.append(current_trip)
-
-        current_trip["Delay"] = train.has_delay_alert
 
     return station_arrivals
 
