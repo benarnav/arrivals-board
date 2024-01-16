@@ -12,7 +12,36 @@ from adafruit_matrixportal.matrix import Matrix
 import adafruit_imageload as imageload
 
 DEBUG = False
-bullet_index = {"Q" : 0, "B" : 1, "MTA": 2, "ALERT": 3, "BLANK": 15}
+bullet_index = {"A" : 0,
+                "C:" : 1,
+                "E" : 2,
+                "B" : 3,
+                "D" : 4,
+                "F" : 5,
+                "M" : 6,
+                "G" : 7,
+                "J" : 8,
+                "Z" : 9,
+                "L" : 10,
+                "N" : 11,
+                "Q" : 12,
+                "R" : 13,
+                "W" : 14,
+                "S" : 15,
+                "1" : 16,
+                "2" : 17,
+                "3" : 18,
+                "4" : 19,
+                "5" : 20,
+                "6" : 21,
+                "7" : 22,
+                "7E": 23,
+                "6E": 24,
+                "SIR":25,
+                "ALERT":26,
+                "MTA":27,
+                "FE":28,
+                "BLANK":37}
 
 # release any currently configured displays
 displayio.release_displays()
@@ -76,7 +105,7 @@ mta_bullets = displayio.TileGrid(mta_sheet,
                                height=2,
                                tile_width=8,
                                tile_height=8,
-                               default_tile=2)
+                               default_tile=27)
 mta_bullets.x = 22
 mta_bullets.y = y_center - 1
 
@@ -269,7 +298,7 @@ class Arrivals:
         self.alert_flash = False
         self.directions = ["North", "South"]
         self.no_service_board = "No\nSer\nvice\n"
-        self.affected_lines = []
+        self.subway_lines = secrets["transit_headers"]["subway-lines"].split(",")
         self.arrivals_queue = [
                             {"Line" : None,
                              "Arrival" : 0,
@@ -290,7 +319,7 @@ class Arrivals:
 
     def api_call(self):
         url = secrets["transit_url"]
-        headers = secrets["transit_headers"]  # {'api-key': api_key, 'user-station': "", (optional)'user-station-ids': "", 'subway-lines': ""}
+        headers = secrets["transit_headers"]  # {'api-key': api_key, 'user-station': "", (optional) 'user-station-ids': "", 'subway-lines': ""}
         try:
             arrival_data = network.fetch_data(url, json_path=[], headers=headers)
         except Exception as e:
@@ -363,22 +392,14 @@ class Arrivals:
                     else:
                         arrivals_south_bullets[0,n] = bullet_index["BLANK"]
 
-        #if self.arrow_refresh is None or time.monotonic() > self.arrow_refresh + 0.1:
-        arrivals_north_arrow.y = arrivals_north_arrow.y - 1
-        arrivals_south_arrow.y = arrivals_south_arrow.y + 1
-        #    self.arrow_refresh = time.monotonic()
-        if arrivals_south_arrow.y > display.height - 2:
-            arrivals_north_arrow.y = display.height
-            arrivals_south_arrow.y = -39
-    '''
     def scroll_board_directions(self):
-        while arrivals_south_arrow.y > display.height:
+        while arrivals_south_arrow.y < display.height:
             arrivals_north_arrow.y = arrivals_north_arrow.y - 1
             arrivals_south_arrow.y = arrivals_south_arrow.y + 1
-            time.sleep(0.1)
+            time.sleep(0.05)
         arrivals_north_arrow.y = display.height
         arrivals_south_arrow.y = -39
-    '''
+
     def update_display(self, arrival_data, bullet_alert_flag, now):
         if arrival_data is None:
             arrival_label_1.text = "Error"
@@ -396,6 +417,8 @@ class Arrivals:
             arrival_label_2.text = "No Svr"
             return
 
+        affected_lines = [alert[0] for alert in arrival_data["alerts"] if alert[0] in self.subway_lines]
+
         for i in range(rows):
             self.arrivals_queue[i]["Line"] = arrival_data["North"][i]["Line"]
             self.arrivals_queue[i]["Arrival"] = arrival_data["North"][i]["Arrival"]
@@ -403,7 +426,7 @@ class Arrivals:
             self.arrivals_queue[i]["FLASH"] = self.alert_flash
             self.arrivals_queue[i]["PREV_TIME"] = self.prev_time
             self.arrivals_queue[i]["ALERT"] = False
-            if self.arrivals_queue[i]["Line"] in self.affected_lines:
+            if self.arrivals_queue[i]["Line"] in affected_lines:
                 self.arrivals_queue[i]["ALERT"] = True
 
         for row, train in enumerate(self.arrivals_queue):
@@ -576,6 +599,8 @@ while True:
 
     if subway_refresh is None or time.monotonic() > subway_refresh + 15:
         try:
+            arrivals.scroll_board_directions()
+
             arrival_data = arrivals.api_call()
             alert_text = arrivals.alert_text(arrival_data)
             alert_scroll_label.text = alert_text
@@ -617,4 +642,4 @@ while True:
         arrivals.update_display(arrival_data, bullet_alert_flag, now=time.monotonic())
         update_time()
         atmosphere.update_display()
-    time.sleep(0.1)
+    time.sleep(1)
