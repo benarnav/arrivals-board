@@ -93,7 +93,7 @@ aqi_lvl = displayio.TileGrid(aqi_sheet,
                                tile_width=13,
                                tile_height=5,
                                default_tile=0)
-aqi_lvl.x = 2
+aqi_lvl.x = 3
 aqi_lvl.y = y_center - 4
 
 mta_sheet, mta_palette = imageload.load("/img/mta_sheet.bmp",
@@ -115,7 +115,7 @@ arrivals_north_bullets = displayio.TileGrid(mta_sheet,
                                height=4,
                                tile_width=8,
                                tile_height=8,
-                               default_tile=2)
+                               default_tile=27)
 arrivals_north_bullets.x = 5
 arrivals_north_bullets.y = 0
 
@@ -125,7 +125,7 @@ arrivals_south_bullets = displayio.TileGrid(mta_sheet,
                                height=4,
                                tile_width=8,
                                tile_height=8,
-                               default_tile=2)
+                               default_tile=27)
 arrivals_south_bullets.x = 31
 arrivals_south_bullets.y = 0
 
@@ -174,7 +174,10 @@ if not DEBUG:
 else:
     font = terminalio.FONT
 
-clock_label = Label(large_font)
+clock_label = Label(large_font, anchor_point=(0.0,0.0), anchored_position=(23, 1))
+#clock_label.x = 23 #round(display.width / 2 - bbwidth / 2)
+#clock_label.y = display.height // 5
+
 weather_label = Label(small_font)
 aqi_label = Label(small_font)
 cieling = y_center - 2
@@ -254,10 +257,10 @@ class Atmosphere:
         return aqi["aqius"]
 
     def update_display(self):
-        aqi_label.x = 2
+        aqi_label.x = 4
         aqi_label.y = 6
-        weather_label.x = 2
-        weather_label.y = y_center + 8
+        weather_label.x = 4
+        weather_label.y = y_center + 6
 
         if self.atmos_data is None:
             weather_label.text = "e" + "°"
@@ -476,6 +479,9 @@ class Arrivals:
         #return prev_time, alert_flash
 
     def alert_text(self, arrival_data):
+        if arrival_data["alerts"] == [] or arrival_data == None:
+            return "No active alerts"
+
         i = 1
         alert_string = ""
         for alert in arrival_data["alerts"]:
@@ -514,8 +520,6 @@ def update_time(*, hours=None, minutes=None, show_colon=False):
     clock_label.text = "{hours:02d}:{minutes:02d}".format(
         hours=hours, minutes=minutes)
     #bbx, bby, bbwidth, bbh = clock_label.bounding_box
-    clock_label.x = 24 #round(display.width / 2 - bbwidth / 2)
-    clock_label.y = display.height // 5
 
     if DEBUG:
         print("Label bounding box: {},{},{},{}".format(bbx, bby, bbwidth, bbh))
@@ -597,37 +601,33 @@ while True:
 
         aqi_refresh = time.monotonic()
 
-    if subway_refresh is None or time.monotonic() > subway_refresh + 15:
-        try:
+    if subway_refresh is None or time.monotonic() > subway_refresh + 12:
+        if not arrivals_group.hidden:
             arrivals.scroll_board_directions()
-
+        try:
             arrival_data = arrivals.api_call()
-            alert_text = arrivals.alert_text(arrival_data)
-            alert_scroll_label.text = alert_text
-
-            if alert_text != displayed_alert_text:
-                bullet_alert_flag = True
 
         except Exception as e:
             print(f"ERROR in subway_refresh: {e}")
             arrival_data = None
+        
+        alert_text = arrivals.alert_text(arrival_data)
+        alert_scroll_label.text = alert_text
+        if alert_text != displayed_alert_text:
+            bullet_alert_flag = True
+
         subway_refresh = time.monotonic()
 
     if event:
         scroll_check = None
-        if event.pressed and arrival_data["alerts"] != [] and event.key_number == 1: #DOWN button
+        if event.pressed and event.key_number == 1: #DOWN button
             display_alt_text()
             bullet_alert_flag = False
             displayed_alert_text = alert_text
             while scroll_check != "DONE":
                 scroll_check = scroll(alert_scroll_label)
                 time.sleep(0.02)
-        elif event.pressed and arrival_data["alerts"] == [] and event.key_number == 1: #DOWN button
-            display_alt_text()
-            alert_scroll_label.text = "No active alerts"
-            while scroll_check != "DONE":
-                scroll_check = scroll(alert_scroll_label)
-                time.sleep(0.02)
+
         elif event.pressed and event.key_number == 0: #UP button
             change_screen()
             if default_group.hidden:
@@ -642,4 +642,5 @@ while True:
         arrivals.update_display(arrival_data, bullet_alert_flag, now=time.monotonic())
         update_time()
         atmosphere.update_display()
+        
     time.sleep(1)
