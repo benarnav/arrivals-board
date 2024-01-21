@@ -10,6 +10,7 @@ from adafruit_bitmap_font import bitmap_font
 from adafruit_matrixportal.network import Network
 from adafruit_matrixportal.matrix import Matrix
 import adafruit_imageload as imageload
+import gc
 
 DEBUG = False
 bullet_index = {"A" : 0,
@@ -436,12 +437,10 @@ class Arrivals:
             arrival_time = train["Arrival"]
             if arrival_time == 0:
                 arrival_time = "Due"
-            elif arrival_time == 1:
-                arrival_time = "1min"
-            elif arrival_time > 1 and arrival_time < 10:
-                arrival_time = f"{arrival_time}mins"
+            #elif arrival_time == 1:
+            #    arrival_time = "1min"
             else:
-                arrival_time = f"{arrival_time}mins"
+                arrival_time = f"{arrival_time}min"
 
             if row == 0:
                 arrival_label_1.text = arrival_time
@@ -479,7 +478,7 @@ class Arrivals:
         #return prev_time, alert_flash
 
     def alert_text(self, arrival_data):
-        if arrival_data["alerts"] == [] or arrival_data == None:
+        if arrival_data is None or arrival_data["alerts"] == []:
             return "No active alerts"
 
         i = 1
@@ -573,6 +572,7 @@ default_group.hidden = False
 arrivals_group.hidden = True
 
 while True:
+    gc.collect()
     event = keys.events.get()
 
     if clock_check is None or time.monotonic() > clock_check + 3600:
@@ -602,6 +602,9 @@ while True:
         aqi_refresh = time.monotonic()
 
     if subway_refresh is None or time.monotonic() > subway_refresh + 12:
+        print(gc.mem_alloc())
+        print(gc.mem_free())
+
         if not arrivals_group.hidden:
             arrivals.scroll_board_directions()
         try:
@@ -610,7 +613,7 @@ while True:
         except Exception as e:
             print(f"ERROR in subway_refresh: {e}")
             arrival_data = None
-        
+
         alert_text = arrivals.alert_text(arrival_data)
         alert_scroll_label.text = alert_text
         if alert_text != displayed_alert_text:
@@ -642,5 +645,5 @@ while True:
         arrivals.update_display(arrival_data, bullet_alert_flag, now=time.monotonic())
         update_time()
         atmosphere.update_display()
-        
+
     time.sleep(1)
