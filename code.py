@@ -11,6 +11,7 @@ from adafruit_matrixportal.network import Network
 from adafruit_matrixportal.matrix import Matrix
 import adafruit_imageload as imageload
 import gc
+import supervisor
 
 DEBUG = False
 bullet_index = {"A" : 0,
@@ -536,7 +537,9 @@ alert_refresh = None
 bullet_alert_flag = True
 return_to_default = None
 displayed_alert_text = " "
-arrival_string = " "
+alert_text = " "
+api_fails = 0
+
 update_time(show_colon=True)  # Display whatever time is on the board
 arrivals = Arrivals()
 atmosphere = Atmosphere()
@@ -581,9 +584,10 @@ while True:
                 show_colon=True
             )  # Make sure a colon is displayed while updating
             network.get_local_time()  # Synchronize Board's clock to Internet
-            clock_check = time.monotonic()
         except RuntimeError as e:
             print("Some error occured, retrying! -", e)
+
+        clock_check = time.monotonic()
 
     if weather_refresh is None or time.monotonic() > weather_refresh + 600:
         try:
@@ -607,12 +611,18 @@ while True:
 
         if not arrivals_group.hidden:
             arrivals.scroll_board_directions()
+
         try:
             arrival_data = arrivals.api_call()
 
         except Exception as e:
             print(f"ERROR in subway_refresh: {e}")
+            api_fails += 1
             arrival_data = None
+
+        if api_fails > 5:
+            print("API STUCK IN DOOM LOOP, RESET TIME~!")
+            supervisor.reload()
 
         alert_text = arrivals.alert_text(arrival_data)
         alert_scroll_label.text = alert_text
