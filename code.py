@@ -577,6 +577,8 @@ arrivals_group.hidden = True
 while True:
     gc.collect()
     event = keys.events.get()
+    if subway_refresh is None:
+        start = time.monotonic()
 
     if clock_check is None or time.monotonic() > clock_check + 3600:
         try:
@@ -585,7 +587,7 @@ while True:
             )  # Make sure a colon is displayed while updating
             network.get_local_time()  # Synchronize Board's clock to Internet
         except RuntimeError as e:
-            print("Some error occured, retrying! -", e)
+            print("Some error occurred, retrying! -", e)
 
         clock_check = time.monotonic()
 
@@ -606,6 +608,7 @@ while True:
         aqi_refresh = time.monotonic()
 
     if subway_refresh is None or time.monotonic() > subway_refresh + 12:
+        print("Arrival API fails", api_fails)
         print(gc.mem_alloc())
         print(gc.mem_free())
 
@@ -617,8 +620,11 @@ while True:
 
         except Exception as e:
             print(f"ERROR in subway_refresh: {e}")
-            api_fails += 1
             arrival_data = None
+
+        if arrival_data is None:
+            print("Time since reboot:", (time.monotonic() - start))
+            api_fails += 1
 
         if api_fails > 5:
             print("API STUCK IN DOOM LOOP, RESET TIME~!")
