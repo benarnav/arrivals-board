@@ -15,7 +15,7 @@ import supervisor
 
 DEBUG = False
 bullet_index = {"A" : 0,
-                "C:" : 1,
+                "C" : 1,
                 "E" : 2,
                 "B" : 3,
                 "D" : 4,
@@ -108,7 +108,7 @@ mta_bullets = displayio.TileGrid(mta_sheet,
                                tile_width=8,
                                tile_height=8,
                                default_tile=27)
-mta_bullets.x = 22
+mta_bullets.x = 24
 mta_bullets.y = y_center - 1
 
 arrivals_north_bullets = displayio.TileGrid(mta_sheet,
@@ -172,13 +172,10 @@ if not DEBUG:
     large_font = bitmap_font.load_font("fonts/Arial-12.bdf") #"fonts/Arial-12.bdf"
     small_font = bitmap_font.load_font("fonts/helvR10.bdf") #"fonts/helvR10.bdf"
     arrival_board_font = bitmap_font.load_font("fonts/helv-9.bdf")
-    #small_font.load_glyphs(("°",))
 else:
     font = terminalio.FONT
 
 clock_label = Label(large_font, anchor_point=(0.0,0.0), anchored_position=(23, 1))
-#clock_label.x = 23 #round(display.width / 2 - bbwidth / 2)
-#clock_label.y = display.height // 5
 
 weather_label = Label(small_font)
 aqi_label = Label(small_font)
@@ -438,8 +435,6 @@ class Arrivals:
             arrival_time = train["Arrival"]
             if arrival_time == 0:
                 arrival_time = "Due"
-            #elif arrival_time == 1:
-            #    arrival_time = "1min"
             else:
                 arrival_time = f"{arrival_time}min"
 
@@ -476,11 +471,9 @@ class Arrivals:
             mta_bullets[0,1] = bullet_index["MTA"]
             arrival_label_2.text = "-1"
 
-        #return prev_time, alert_flash
-
     def alert_text(self, arrival_data):
         if arrival_data is None or arrival_data["alerts"] == []:
-            return "No active alerts"
+            return "No active alerts."
 
         i = 1
         alert_string = ""
@@ -575,19 +568,15 @@ default_group.hidden = False
 arrivals_group.hidden = True
 
 while True:
-    gc.collect()
+    #gc.collect()
     event = keys.events.get()
-    if subway_refresh is None:
-        start = time.monotonic()
 
     if clock_check is None or time.monotonic() > clock_check + 3600:
         try:
-            update_time(
-                show_colon=True
-            )  # Make sure a colon is displayed while updating
+            update_time(show_colon=True)
             network.get_local_time()  # Synchronize Board's clock to Internet
         except RuntimeError as e:
-            print("Some error occurred, retrying! -", e)
+            print("CLOCK UPDATE ERROR:", e)
 
         clock_check = time.monotonic()
 
@@ -595,7 +584,7 @@ while True:
         try:
             atmosphere.weather_api()
         except Exception as e:
-            print("WEATHER API ERROR: ", e)
+            print("WEATHER API ERROR:", e)
 
         weather_refresh = time.monotonic()
 
@@ -603,15 +592,11 @@ while True:
         try:
             atmosphere.aqi_api()
         except Exception as e:
-            print("AQI API ERROR: ", e)
+            print("AQI API ERROR:", e)
 
         aqi_refresh = time.monotonic()
 
     if subway_refresh is None or time.monotonic() > subway_refresh + 12:
-        print("Arrival API fails", api_fails)
-        print(gc.mem_alloc())
-        print(gc.mem_free())
-
         if not arrivals_group.hidden:
             arrivals.scroll_board_directions()
 
@@ -623,11 +608,13 @@ while True:
             arrival_data = None
 
         if arrival_data is None:
-            print("Time since reboot:", (time.monotonic() - start))
+            print("Time since reboot:", (time.monotonic() - start)/60)
             api_fails += 1
 
         if api_fails > 5:
             print("API STUCK IN DOOM LOOP, RESET TIME~!")
+            clock_label.text = "RESET"
+            time.sleep(30)
             supervisor.reload()
 
         alert_text = arrivals.alert_text(arrival_data)
