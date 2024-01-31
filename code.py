@@ -294,13 +294,17 @@ class Atmosphere:
 
 class Arrivals:
     def __init__(self):
+        self.url = secrets["transit_url"]
+        self.headers = secrets["transit_headers"]  # {'api-key': api_key, 'user-station': "", (optional) 'user-station-ids': "", 'subway-lines': ""}
         self.arrow_refresh = None
         self.default_rows = 2
         self.prev_time = -1
         self.alert_flash = False
         self.directions = ["North", "South"]
         self.no_service_board = "No\nSer\nvice\n"
-        self.subway_lines = secrets["transit_headers"]["subway-lines"].split(",")
+        #self.subway_lines = []
+        #for n in range(len(self.headers)):
+        #    self.subway_lines.extend(secrets["transit_headers"][n]["subway-lines"].split(","))
         self.arrivals_queue = [
                             {"Line" : None,
                              "Arrival" : 0,
@@ -320,10 +324,19 @@ class Arrivals:
                              "PREV_TIME" : -1}]
 
     def api_call(self):
-        url = secrets["transit_url"]
-        headers = secrets["transit_headers"]  # {'api-key': api_key, 'user-station': "", (optional) 'user-station-ids': "", 'subway-lines': ""}
         try:
-            arrival_data = network.fetch_data(url, json_path=[], headers=headers)
+            if len(self.headers) == 1:
+                arrival_data = network.fetch_data(self.url, json_path=[], headers=self.headers[0])
+            else:
+                arrival_data = {"North": [], "South": [], "alerts": []}
+
+                for i in range(len(self.headers)):
+                    data = network.fetch_data(self.url, json_path=[], headers=self.headers[i])
+                    arrival_data["North"] += data["North"]
+                    arrival_data["North"] = sorted(arrival_data["North"], key=lambda x: x["Arrival"])
+
+                    arrival_data["South"] += data["South"]
+                    arrival_data["South"] = sorted(arrival_data["South"], key=lambda x: x["Arrival"])
         except Exception as e:
             print("Arrival API call ERROR:", e)
             return None
@@ -419,7 +432,7 @@ class Arrivals:
             arrival_label_2.text = "No Svr"
             return
 
-        affected_lines = [alert[0] for alert in arrival_data["alerts"] if alert[0] in self.subway_lines]
+        affected_lines = [alert[0] for alert in arrival_data["alerts"]] # if alert[0] in self.subway_lines]
 
         for i in range(rows):
             self.arrivals_queue[i]["Line"] = arrival_data["North"][i]["Line"]
@@ -608,7 +621,6 @@ while True:
             arrival_data = None
 
         if arrival_data is None:
-            print("Time since reboot:", (time.monotonic() - start)/60)
             api_fails += 1
 
         if api_fails > 5:
