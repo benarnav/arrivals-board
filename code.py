@@ -10,7 +10,6 @@ from adafruit_bitmap_font import bitmap_font
 from adafruit_matrixportal.network import Network
 from adafruit_matrixportal.matrix import Matrix
 import adafruit_imageload as imageload
-import gc
 import supervisor
 
 DEBUG = False
@@ -622,6 +621,8 @@ while True:
 
         if arrival_data is None:
             api_fails += 1
+        else:
+            api_fails = 0
 
         if api_fails > 5:
             print("API STUCK IN DOOM LOOP, RESET TIME~!")
