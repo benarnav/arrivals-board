@@ -147,7 +147,6 @@ arrivals_south_arrow = displayio.TileGrid(arrivals_arrow_south,
                                           height=1,
                                           tile_width=5,
                                           tile_height=39)
-#arrivals_south_arrow.flip_x = True
 arrivals_south_arrow.x = display.width - 12
 arrivals_south_arrow.y =  -39
 
@@ -301,13 +300,10 @@ class Arrivals:
         self.alert_flash = False
         self.directions = ["North", "South"]
         self.no_service_board = "No\nSer\nvice\n"
-        #self.subway_lines = []
-        #for n in range(len(self.headers)):
-        #    self.subway_lines.extend(secrets["transit_headers"][n]["subway-lines"].split(","))
+        self.default_direction = secrets['default_direction']
         self.arrivals_queue = [
                             {"Line" : None,
                              "Arrival" : 0,
-                             "Delay" : False,
                              "ALERT" : False,
                              "FLASH_ON" : 1,
                              "FLASH_OFF" : 8,
@@ -315,7 +311,6 @@ class Arrivals:
                              "PREV_TIME" : -1},
                              {"Line" : None,
                              "Arrival" : 0,
-                             "Delay" : False,
                              "ALERT" : False,
                              "FLASH_ON" : 1,
                              "FLASH_OFF" : 8,
@@ -422,7 +417,7 @@ class Arrivals:
                 mta_bullets[0,row] = bullet_index["MTA"]
             return
 
-        rows = min(self.default_rows, len(arrival_data["North"]))
+        rows = min(self.default_rows, len(arrival_data[self.default_direction]))
 
         if rows == 0:
             for row in range(2):
@@ -434,9 +429,8 @@ class Arrivals:
         affected_lines = [alert[0] for alert in arrival_data["alerts"]] # if alert[0] in self.subway_lines]
 
         for i in range(rows):
-            self.arrivals_queue[i]["Line"] = arrival_data["North"][i]["Line"]
-            self.arrivals_queue[i]["Arrival"] = arrival_data["North"][i]["Arrival"]
-            self.arrivals_queue[i]["Delay"] = arrival_data["North"][i]["Delay"]
+            self.arrivals_queue[i]["Line"] = arrival_data[self.default_direction][i]["Line"]
+            self.arrivals_queue[i]["Arrival"] = arrival_data[self.default_direction][i]["Arrival"]
             self.arrivals_queue[i]["FLASH"] = self.alert_flash
             self.arrivals_queue[i]["PREV_TIME"] = self.prev_time
             self.arrivals_queue[i]["ALERT"] = False
@@ -452,17 +446,9 @@ class Arrivals:
 
             if row == 0:
                 arrival_label_1.text = arrival_time
-                if train["Delay"]:
-                    arrival_label_1.color = color[1]
-                else:
-                    arrival_label_1.color = color[4]
 
             elif row == 1:
                 arrival_label_2.text = arrival_time
-                if train["Delay"]:
-                    arrival_label_2.color = color[1]
-                else:
-                    arrival_label_2.color = color[4]
 
             if train["ALERT"] is True and bullet_alert_flag is True:
                 if train["FLASH"]:
