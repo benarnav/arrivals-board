@@ -242,8 +242,6 @@ class Atmosphere:
         self.atmos_data["low_temp"] = round(weather['main']['temp_min'])
         self.atmos_data["feels_temp"] = round(weather['main']['feels_like'])
 
-        return self.atmos_data
-
     def aqi_api(self):
         try:
             aqi = network.fetch_data(self.iqair_url, json_path=["data", "current", "pollution"])
@@ -252,7 +250,6 @@ class Atmosphere:
             return None
 
         self.atmos_data["aqi"] = aqi["aqius"]
-        return aqi["aqius"]
 
     def update_display(self):
         aqi_label.x = 4
@@ -266,7 +263,7 @@ class Atmosphere:
             aqi_lvl[0] = 0
             return
 
-        weather_label.text = "{temp}°".format(temp=self.atmos_data["current_temp"])  # + "°"
+        weather_label.text = "{temp}°".format(temp=self.atmos_data["current_temp"])  #pick what value you want displayed from atmos_data
 
         if self.atmos_data["aqi"] < 10:
             aqi_label.text = " {aqi}".format(aqi=self.atmos_data["aqi"])
