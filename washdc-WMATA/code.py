@@ -20,12 +20,12 @@ except ImportError:
 print("Time will be set for {}".format(secrets["timezone"]))
 
 DEBUG = False
-bullet_index = {"RD":0,
-                "OR":1,
-                "BL":2,
-                "GR":3,
-                "YL":4,
-                "SV":5,
+bullet_index = {"RED":0,
+                "ORANGE":1,
+                "BLUE":2,
+                "GREEN":3,
+                "YELLOW":4,
+                "SILVER":5,
                 "ALERT":6,
                 "WMATA":7,
                 "BLANK":15}
@@ -268,9 +268,8 @@ class Atmosphere:
 
 class Arrivals:
     def __init__(self):
-        self.arrivals_url = "https://api.wmata.com/StationPrediction.svc/json/GetPrediction/D08" #{station}".format(station=secrets["station"])
-        self.incidents_url = "https://api.wmata.com/Incidents.svc/json/Incidents"
-        self.headers = secrets["transit_headers"]  # {'api-key': api_key}
+        self.url = secrets["transit_url"]
+        self.headers = secrets["transit_headers"]
         self.arrow_refresh = None
         self.default_rows = 2
         self.prev_time = -1
@@ -296,35 +295,13 @@ class Arrivals:
 
     def api_call(self):
         try:
-            arrivals = network.fetch_data(self.arrivals_url, json_path=[], headers=self.headers)
-            alerts = network.fetch_data(self.incidents_url, json_path=[], headers=self.headers)
-            if arrivals["Trains"] == []:
-                return None
-
-            arrival_data = {"NE": [], "SW": [], "alerts": []}
-            lines = []
-
-            for train in arrivals["Trains"]:
-                if train["Line"] == "No":
-                    continue
-                if train["Line"] not in lines:
-                    lines.append(train["Line"])
-                if train["Group"] == "1":
-                    arrival_data["NE"].append(train)
-                else:
-                    arrival_data["SW"].append(train)
-
-            if alerts["Incidents"] != []:
-                for alert in alerts:
-                    lines_affected = alert["LinesAffected"].split(";")
-                    if any(element in lines for element in lines_affected):
-                        arrival_data.append(alert["Description"])
+            arrivals_data = network.fetch_data(self.url, json_path=[], headers=self.headers)
 
         except Exception as e:
             print("Arrival API call ERROR:", e)
             return None
 
-        return arrival_data
+        return arrivals_data
 
     def update_board(self, arrival_data):
         if arrival_data is None:
@@ -356,26 +333,26 @@ class Arrivals:
                     arrivals_north_bullets[0,i] = bullet_index[arrival_data["NE"][i]["Line"]]
                 else:
                     arrivals_south_bullets[0,i] = bullet_index[arrival_data["SW"][i]["Line"]]
-                arrival_time = arrival_data[direction][i]["Min"]
+                arrival_time = arrival_data[direction][i]["Arrival"]
 
-                if len(arrival_data[direction][0]["Min"]) < 2:
+                if arrival_data[direction][0]["Arrival"] != 0:
                     if direction == "NE":
                         north_rectangle.hidden = True
                     else:
                         south_rectangle.hidden = True
 
-                if len(arrival_time) > 2:
-                    #arrival_time = "Due"
+                if arrival_time == 0:
+                    arrival_time = "ARR"
                     if direction == "NE":
                         north_rectangle.hidden = False
                     else:
                         south_rectangle.hidden = False
 
-                elif len(arrival_time) == 1:
-                    arrival_time = f" {arrival_data[direction][i]["Min"]}"
+                elif arrival_time < 10:
+                    arrival_time = f" {arrival_data[direction][i]["Arrival"]}"
 
                 else:
-                    arrival_time = str(arrival_data[direction][i]["Min"])
+                    arrival_time = str(arrival_data[direction][i]["Arrival"])
                 arrival_board_times += arrival_time + "\n"
 
             if direction == "NE":
@@ -419,7 +396,7 @@ class Arrivals:
 
         for i in range(rows):
             self.arrivals_queue[i]["Line"] = arrival_data[self.default_direction][i]["Line"]
-            self.arrivals_queue[i]["Arrival"] = arrival_data[self.default_direction][i]["Min"]
+            self.arrivals_queue[i]["Arrival"] = arrival_data[self.default_direction][i]["Arrival"]
             self.arrivals_queue[i]["FLASH"] = self.alert_flash
             self.arrivals_queue[i]["PREV_TIME"] = self.prev_time
             self.arrivals_queue[i]["ALERT"] = False
@@ -428,10 +405,10 @@ class Arrivals:
 
         for row, train in enumerate(self.arrivals_queue):
             arrival_time = train["Arrival"]
-            if len(train["Arrival"]) > 2:
-                arrival_time = train["Arrival"]
+            if arrival_time == 0:
+                arrival_time = "ARR"
             else:
-                arrival_time += "min"
+                arrival_time = f"{arrival_time}min"
 
             if row == 0:
                 arrival_label_1.text = arrival_time

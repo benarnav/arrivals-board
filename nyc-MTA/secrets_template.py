@@ -5,7 +5,6 @@ secrets = {
     'ssid' : '', #wifi network name
     'password' : '', #wifi password
     'timezone' : '', # http://worldtimeapi.org/timezones
-    'api_key' : '', #MTA api key from https://api.mta.info/
     'openweather_key' : '', #api key from https://openweathermap.org/api
     'iqair_key' : '', #api key from https://www.iqair.com/us/air-quality-monitors/api
     'aio_username' : '', #username from https://accounts.adafruit.com/users/sign_in
@@ -13,8 +12,7 @@ secrets = {
     'latitude' : '', #latitude where unit is located
     'longitude' : '', #latitude where unit is located
     'transit_url' : '', #url to your api endpoint on pythonganywhere or other host
-    'transit_headers' : [{'api-key': '', #MTA api key from https://api.mta.info/
-                          'user-station': "", #local station, for multiple stations, add another dict to this list 
-                          'user-station-ids': "", #optional
+    'transit_headers' : [{'api-key': '', #api key for Flask app
+                          'station-ids': "", #required, find ids in the stops.txt from http://web.mta.info/developers/data/nyct/subway/google_transit.zip
                           'subway-lines': ""} #Subway lines to be displayed, separated by a comma and no spaces
-    ]}
+    ]}                              #For multiple stations, add an additional dictionary to this list

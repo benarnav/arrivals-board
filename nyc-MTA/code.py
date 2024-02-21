@@ -11,6 +11,7 @@ from adafruit_matrixportal.network import Network
 from adafruit_matrixportal.matrix import Matrix
 import adafruit_imageload as imageload
 import supervisor
+import gc
 
 DEBUG = False
 bullet_index = {"A" : 0,
@@ -566,7 +567,7 @@ default_group.hidden = False
 arrivals_group.hidden = True
 
 while True:
-    #gc.collect()
+    gc.collect()
     event = keys.events.get()
 
     if clock_check is None or time.monotonic() > clock_check + 3600:
