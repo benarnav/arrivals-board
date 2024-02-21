@@ -12,6 +12,8 @@ Originally, I used an Adafruit Matrixportal M4, but it doesn't have enough memor
 ## Note on data
 The NYC Subway and Washington DC Metro use protocol buffers for their data. The packages needed to parse the datafeeds are too large for a microconroller, so I built a simple `Flask` app that prepares the data for the display. That app is hosted on [Python Anywhere](www.pythonanywhere.com). This setup only requires you obtain a [free API key](https://new.mta.info/developers) from the MTA or [WMATA](https://developer.wmata.com). Specifying the subway lines and station that's displayed is handled by headers in the API call to the Flask app.
 
+NYC Subway routes are organized into two travel directions: North and South and looking at a map this is fairly easy to figure out which direction you would want displayed. Washington DC's Metro is a little more complex and in the official data feed trains are listed as direction 0 or direction 1. I have mapped these to roughly trains that end in the North or East and ones that end in the South or West.
+
 ## Future Plans
 I've been thinking about adding a dial that would allow switching between more than just two screens, but I haven't thought of what other sort of information I'd like to display. I'd also like to add support for other transit agencies, so if you live in a city where this would be useful, please contribute! 
 
