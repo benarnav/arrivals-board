@@ -168,13 +168,13 @@ south_rectangle = vectorio.Rectangle(pixel_shader=color,
 south_rectangle.hidden = True
 
 if not DEBUG:
-    large_font = bitmap_font.load_font("fonts/Arial-12.bdf") #"fonts/Arial-12.bdf"
-    small_font = bitmap_font.load_font("fonts/helvR10.bdf") #"fonts/helvR10.bdf"
+    large_font = bitmap_font.load_font("fonts/helvR14.bdf") 
+    small_font = bitmap_font.load_font("fonts/helvR10.bdf")
     arrival_board_font = bitmap_font.load_font("fonts/helv-9.bdf")
 else:
     font = terminalio.FONT
 
-clock_label = Label(large_font, anchor_point=(0.0,0.0), anchored_position=(23, 1))
+clock_label = Label(large_font, anchor_point=(0.5,0.5), anchored_position=(44, 7))
 
 weather_label = Label(small_font)
 aqi_label = Label(small_font)
