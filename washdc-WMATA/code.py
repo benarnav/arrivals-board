@@ -52,6 +52,7 @@ color[4] = 0x808183  # white
 
 # Create a TileGrid using the Bitmap and Palette
 y_center = display.height // 2
+cieling = y_center - 2
 
 tile_grid = displayio.TileGrid(bitmap, pixel_shader=color,)
 root_group.append(tile_grid)  # ELEMENT 0, Add the TileGrid to the Group
@@ -152,20 +153,20 @@ else:
 clock_label = Label(large_font, anchor_point=(0.5,0.5), anchored_position=(44, 7))
 
 weather_label = Label(small_font)
+weather_label.x = 4
+weather_label.y = y_center + 6
+
 aqi_label = Label(small_font)
-cieling = y_center - 2
+aqi_label.x = 4
+aqi_label.y = 6
+
 arrival_label_1 = Label(small_font, color=color[4], anchor_point=(1.0,0.0), anchored_position=(display.width, cieling))
-arrival_label_2 = Label(small_font, color=color[4], anchor_point=(1.0,0.0), anchored_position=(display.width, cieling+9))
+arrival_label_2 = Label(small_font, color=color[4], anchor_point=(1.0,0.0), anchored_position=(display.width, cieling + 9))
 
 alert_scroll_label = Bitmap_Label(small_font)
 alert_scroll_label.x = display.width
 alert_scroll_label.y = 26
 alert_scroll_label.color = color[4]
-
-arrival_scroll_label = Bitmap_Label(small_font)
-arrival_scroll_label.x = display.width
-arrival_scroll_label.y = 26
-arrival_scroll_label.color = color[4]
 
 arrivals_row_nums = Bitmap_Label(font=arrival_board_font,
                                  text="1\n2\n3\n4",
@@ -501,7 +502,6 @@ default_group.append(aqi_label)     #ELEMENT 5
 default_group.append(arrival_label_1) #ELEMENT 6
 default_group.append(arrival_label_2) #ELEMENT 7
 default_group.append(alert_scroll_label) #ELEMENT 8
-default_group.append(arrival_scroll_label) #ELEMENT 9
 
 arrivals_group.append(arrivals_row_nums)
 arrivals_group.append(arrivals_north_bullets)
