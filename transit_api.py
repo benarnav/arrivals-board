@@ -44,14 +44,16 @@ class MTA:
                                     trip_data = {'Line': '', "N-S": '', "Direction": '', "Arrival": ''}
 
                                     if station.stop_id in station_ids:
-                                        if (station.arrival.time - now) < 0:
+                                        arrival = (station.arrival.time - now) / 60
+                                        if arrival < 0 or arrival > 200:
                                             continue
                                         trip_data['Line'] = entity.trip_update.trip.route_id
                                         trip_data['N-S'] = station.stop_id[-1]
                                         trip_data["Direction"] = mta_stations[entity.trip_update.stop_time_update[-1].stop_id]
-                                        trip_data['Arrival'] = math.floor((station.arrival.time - now) / 60)
-                                        if trip_data['Arrival'] < 0 or trip_data['Arrival'] > 200:
-                                            continue
+                                        if arrival < 1.0:
+                                            trip_data['Arrival'] = 0
+                                        else:
+                                            trip_data['Arrival'] = round(arrival)
                                     if trip_data['N-S'] == "N":
                                         arrivals_data["North"].append(trip_data)
                                     elif trip_data['N-S'] == "S":
@@ -111,14 +113,17 @@ class WMATA:
                     for station in entity.trip_update.stop_time_update:
                         trip_data = {'Line': '', "NE-SW": '', "Direction": '', "Arrival": ''}
                         if station.stop_id[3:6] in station_ids:
-                            if (station.arrival.time - now) < 0:
+                            arrival = (station.arrival.time - now) / 60
+                            if arrival < 0 or arrival > 200:
                                 continue
                             trip_data['Line'] = entity.trip_update.trip.route_id
                             trip_data['NE-SW'] = self.directions[entity.trip_update.trip.direction_id]
                             trip_data["Direction"] = wmata_stations[entity.trip_update.stop_time_update[-1].stop_id[3:6]]['Name']
-                            trip_data['Arrival'] = math.floor((station.arrival.time - now) / 60)
-                            if trip_data['Arrival'] < 0 or trip_data['Arrival'] > 200:
-                                continue
+                            if arrival < 1.0:
+                                trip_data['Arrival'] = 0
+                            else:    
+                                trip_data['Arrival'] = round(arrival)
+
                             if trip_data['NE-SW'] == "NE":
                                 arrivals_data["NE"].append(trip_data)
                             elif trip_data['NE-SW'] == "SW":
