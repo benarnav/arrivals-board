@@ -51,12 +51,15 @@ These are the components I used in my build:
     - adafruit_lis3dh.mpy
     - adafruit_requests.mpy
     - neopixel.mpy
-2. Copy the `fonts` folder to the root directory on the Matrixportal.
-3. Copy the `img` folder for your selected transit system to the root directory.
-4. Download and fill out the fields in `secrets_template.py` according to the inline instructions. 
-5. Rename `secrets_template.py` to `secrets.py` and copy it to the root directory.
-6. Copy the `code.py` to the root directory.
-7. Enjoy not waiting on the platform.
+2. Sign up for a developer account for your selected transit agency and get an API key. 
+3. Create an API key for your `Flask` app, it can be anything, it just has to match when making requests.
+4. Sign up for a an account on pythonanywhere.com and [follow these instructions](https://help.pythonanywhere.com/pages/Flask/) to deploy the `Flask` app in the repo. Make sure to fill in your API keys in the `envar_template.py` and then rename it to `envar.py` before uploading it to pythonanywhere.
+5. Copy the `fonts` folder to the root directory on the Matrixportal.
+6. Copy the `img` folder for your selected transit system to the root directory.
+7. Download and fill out the fields in `secrets_template.py` according to the inline instructions. 
+8. Rename `secrets_template.py` to `secrets.py` and copy it to the root directory.
+9. Copy the `code.py` to the root directory.
+10. Enjoy not waiting on the platform.
 
 
 ## License
