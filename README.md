@@ -47,10 +47,12 @@ These are the components I used in my build:
     - adafruit_matrixportal/
     - adafruit_minimqtt/
     - adafruit_portalbase/
+    - adafruit_connection_manager.mpy
     - adafruit_fakerequests.mpy
     - adafruit_lis3dh.mpy
     - adafruit_requests.mpy
     - neopixel.mpy
+
 2. Sign up for a developer account for your selected transit agency and get an API key. 
 3. Create an API key for your `Flask` app, it can be anything, it just has to match when making requests.
 4. Sign up for a an account on pythonanywhere.com and [follow these instructions](https://help.pythonanywhere.com/pages/Flask/) to deploy the `Flask` app in the repo. Make sure to fill in your API keys in the `envar_template.py` and then rename it to `envar.py` before uploading it to pythonanywhere.
