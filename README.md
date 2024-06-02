@@ -36,7 +36,7 @@ These are the components I used in my build:
 - Wall power adapter to USB C (5V 2.5A), similar to [this one](https://www.adafruit.com/product/1995). Note: the linked adapter also requires a Micro B USB to USB C [adapter](https://www.adafruit.com/product/4299)
 
 ### Software
-1. Follow the [instructions on this page](https://learn.adafruit.com/adafruit-matrixportal-s3/prep-the-matrixportal) to prepared the display and install CircuitPython. Ensure the following are placed inside the `lib` folder when installing libraries:
+1. Follow the [instructions on this page](https://learn.adafruit.com/adafruit-matrixportal-s3/prep-the-matrixportal) to prepared the display and install CircuitPython. Download the [library files](https://circuitpython.org/libraries) here. Ensure the following are placed inside the `lib` folder when installing libraries:
     - adafruit_bitmap_font/
     - adafruit_bus_device/
     - adafruit_display_shapes/
