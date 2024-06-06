@@ -34,6 +34,7 @@ These are the components I used in my build:
 - 64x32 RGB LED Matrix display - 4mm pitch, similar to [this one](https://www.adafruit.com/product/2278)
 - A [diffusion panel](https://www.adafruit.com/product/4749)
 - Wall power adapter to USB C (5V 2.5A), similar to [this one](https://www.adafruit.com/product/1995). Note: the linked adapter also requires a Micro B USB to USB C [adapter](https://www.adafruit.com/product/4299)
+    - If the above is out of stock, you can try [this one on Amazon](https://a.co/d/aSLpihE)
 
 ### Software
 1. Follow the [instructions on this page](https://learn.adafruit.com/adafruit-matrixportal-s3/prep-the-matrixportal) to prepared the display and install CircuitPython. Download the [library files](https://circuitpython.org/libraries) here. Ensure the following are placed inside the `lib` folder when installing libraries:
