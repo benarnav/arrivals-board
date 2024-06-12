@@ -53,7 +53,7 @@ These are the components I used in my build:
     - adafruit_requests.mpy
     - neopixel.mpy
 
-2. Sign up for a developer account for your selected transit agency and get an API key. 
+2. If you are setting this up in Washington, DC, [sign up](https://developer.wmata.com) for a developer account and get an API key. 
 3. Create an API key for your `Flask` app, it can be anything, it just has to match when making requests.
 4. Sign up for a an account on pythonanywhere.com and [follow these instructions](https://help.pythonanywhere.com/pages/Flask/) to deploy the `Flask` [app in the repo](https://github.com/benarnav/arrivals-board/blob/main/transit_api.py) (the file called `transit_api.py`). Make sure to fill in your API keys in the `envar_template.py` and then rename it to `envar.py` before uploading it to pythonanywhere. Finally, upload `station_dict.py` to the same directory as `transit_api.py` and `envar.py` on pythonanywhere.com.
 5. Copy the `fonts` folder to the root directory on the Matrixportal.
