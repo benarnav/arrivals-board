@@ -5,7 +5,6 @@ from google.transit import gtfs_realtime_pb2
 from station_dict import mta_stations, wmata_stations
 import requests
 import time
-import math
 
 app = Flask(__name__)
 api = Api(app)
