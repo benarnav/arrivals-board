@@ -12,13 +12,16 @@ The default screen also shows the time, temperature and AQI level. The AQI icon 
 
 Originally, I used an Adafruit Matrixportal M4, but it doesn't have enough memory for all the information and would frequently crash. I also would like to add additional functionality, so the additional memory is necessary. 
 
+<img src="/arrivals_board.gif" alt="example2">
+
+
 ## Note on data
 The NYC Subway and Washington DC Metro use protocol buffers for their data. The packages needed to parse the datafeeds are too large for a microcontroller, so I built a simple `Flask` app that prepares the data for the display. That app is hosted on [Python Anywhere](www.pythonanywhere.com). This setup only requires you obtain a [free API key](https://new.mta.info/developers) from the MTA or [WMATA](https://developer.wmata.com). Specifying the subway lines and station that's displayed is handled by headers in the API call to the Flask app.
 
 NYC Subway routes are organized into two travel directions: North and South and looking at a map this is fairly easy to figure out which direction you would want displayed. Washington DC's Metro is a little more complex and in the official data feed trains are listed as direction 0 or direction 1. I have mapped these to roughly trains that end in the North or East and ones that end in the South or West.
 
 ## Future Plans
-I’ve been thinking about adding a dial that would allow switching between more than just two screens, but I haven’t thought of what other sort of information I’d like to display.
+I’ve been thinking about adding a dial that would allow switching between more than just two screens, but I haven’t thought of what other sort of information I’d like to display. I would also like to build a case for it.
 
 The data delivered by the `Flask` app includes information on the terminal station, and displaying this or filtering trains based on it could be useful for users who need that level of specificity.
 
@@ -63,6 +66,11 @@ These are the components I used in my build:
 9. Copy the `code.py` to the root directory.
 10. Enjoy not waiting on the platform.
 
+### Features
+If you used a Matrixportal S3, it has three buttons built into the board. From top to bottom they are: `RESET`, `UP` and `DOWN`. Here is the current functionality of each button:
+- `RESET` will reset the device and will reload the code, it's useful in case the board looses its wi-fi connection or other error.
+- `UP` will change the display to show the next four trains in both directions, as seen in the example gif above.
+- `DOWN` scrolls any active alerts on the lines selected during setup.
 
 ## License
 This project is licensed under the [GNU v3](LICENSE).
