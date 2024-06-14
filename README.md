@@ -66,7 +66,7 @@ These are the components I used in my build:
 9. Copy the `code.py` to the root directory.
 10. Enjoy not waiting on the platform.
 
-### Features
+## Features
 If you used a Matrixportal S3, it has three buttons built into the board. From top to bottom they are: `RESET`, `UP` and `DOWN`. Here is the current functionality of each button:
 - `RESET` will reset the device and will reload the code, it's useful in case the board looses its wi-fi connection or other error.
 - `UP` will change the display to show the next four trains in both directions, as seen in the example gif above.
