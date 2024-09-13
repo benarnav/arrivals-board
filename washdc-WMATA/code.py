@@ -11,6 +11,7 @@ from adafruit_matrixportal.network import Network
 from adafruit_matrixportal.matrix import Matrix
 import adafruit_imageload as imageload
 import supervisor
+import wifi
 
 try:
     from secrets import secrets
@@ -290,7 +291,17 @@ class Arrivals:
                              "FLASH_OFF" : 8,
                              "FLASH" : False,
                              "PREV_TIME" : -1}]
-
+    def wifi_lost_message(self):
+        if default_group.hidden:
+            change_screen()
+        arrival_label_1.color = color[1]
+        arrival_label_2.color = color[1]
+        arrival_label_1.text = "WiFi "
+        arrival_label_2.text = "LOST" 
+        
+        for row in range(2):
+            wmata_bullets[0,row] = bullet_index["WMATA"]
+            
     def api_call(self):
         try:
             arrivals_data = network.fetch_data(self.url, json_path=[], headers=self.headers)
@@ -302,6 +313,10 @@ class Arrivals:
         return arrivals_data
 
     def update_board(self, arrival_data):
+        if not wifi.radio.connected:
+            self.wifi_lost_message()
+            return
+        
         if arrival_data is None:
             arrivals_north_label.text = "err\nerr\nerr\nerr"
             arrivals_south_label.text = "err\nerr\nerr\nerr"
@@ -374,6 +389,10 @@ class Arrivals:
         arrivals_south_arrow.y = -28
 
     def update_display(self, arrival_data, bullet_alert_flag, now):
+        if not wifi.radio.connected:
+            self.wifi_lost_message()
+            return
+        
         if arrival_data is None:
             arrival_label_1.text = "Error"
             arrival_label_2.text = "Error"

@@ -12,6 +12,7 @@ from adafruit_matrixportal.matrix import Matrix
 import adafruit_imageload as imageload
 import supervisor
 import gc
+import wifi
 
 DEBUG = False
 bullet_index = {"A" : 0,
@@ -310,6 +311,16 @@ class Arrivals:
                              "FLASH_OFF" : 8,
                              "FLASH" : False,
                              "PREV_TIME" : -1}]
+    def wifi_lost_message(self):
+        if default_group.hidden:
+            change_screen()
+        arrival_label_1.color = color[1]
+        arrival_label_2.color = color[1]
+        arrival_label_1.text = "WiFi "
+        arrival_label_2.text = "LOST" 
+        
+        for row in range(2):
+            mta_bullets[0,row] = bullet_index["MTA"]
 
     def api_call(self):
         try:
@@ -332,6 +343,11 @@ class Arrivals:
         return arrival_data
 
     def update_board(self, arrival_data):
+        if not wifi.radio.connected:
+            self.wifi_lost_message()
+            
+            return
+        
         if arrival_data is None:
             arrivals_north_label.text = "err\nerr\nerr\nerr"
             arrivals_south_label.text = "err\nerr\nerr\nerr"
@@ -404,6 +420,10 @@ class Arrivals:
         arrivals_south_arrow.y = -39
 
     def update_display(self, arrival_data, bullet_alert_flag, now):
+        if not wifi.radio.connected:
+            self.wifi_lost_message()
+            return
+        
         if arrival_data is None:
             arrival_label_1.text = "Error"
             arrival_label_2.text = "Error"
@@ -605,8 +625,8 @@ while True:
 
         if api_fails > 5:
             print("API STUCK IN DOOM LOOP, RESET TIME~!")
-            clock_label.text = "RESET"
-            time.sleep(30)
+            clock_label.text = "reset"
+            time.sleep(120)
             supervisor.reload()
 
         alert_text = arrivals.alert_text(arrival_data)
