@@ -11,6 +11,7 @@ from adafruit_matrixportal.network import Network
 from adafruit_matrixportal.matrix import Matrix
 import adafruit_imageload as imageload
 import supervisor
+import gc
 import wifi
 
 try:
@@ -409,7 +410,7 @@ class Arrivals:
             arrival_label_2.text = "No Srv"
             return
 
-        affected_lines = [alert[0] for alert in arrival_data["alerts"]] # if alert[0] in self.subway_lines]
+        affected_lines = [alert[0] for alert in arrival_data["alerts"]]
 
         for i in range(rows):
             self.arrivals_queue[i]["Line"] = arrival_data[self.default_direction][i]["Line"]
@@ -540,7 +541,7 @@ default_group.hidden = False
 arrivals_group.hidden = True
 
 while True:
-    #gc.collect()
+    gc.collect()
     event = keys.events.get()
 
     if clock_check is None or time.monotonic() > clock_check + 3600:

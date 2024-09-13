@@ -73,8 +73,6 @@ color[1] = 0xFF0000  # red
 color[2] = 0xCC4000  # amber
 color[3] = 0x00ff00  # greenish
 color[4] = 0x808183  # white
-color[5] = 0xFCCC0A  # Q line yellow
-color[6] = 0xFF6319  # B line orange
 
 # Create a TileGrid using the Bitmap and Palette
 y_center = display.height // 2
@@ -440,7 +438,7 @@ class Arrivals:
             arrival_label_2.text = "No Svr"
             return
 
-        affected_lines = [alert[0] for alert in arrival_data["alerts"]] # if alert[0] in self.subway_lines]
+        affected_lines = [alert[0] for alert in arrival_data["alerts"]]
 
         for i in range(rows):
             self.arrivals_queue[i]["Line"] = arrival_data[self.default_direction][i]["Line"]
@@ -585,7 +583,7 @@ while True:
     if clock_check is None or time.monotonic() > clock_check + 3600:
         try:
             update_time(show_colon=True)
-            network.get_local_time()  # Synchronize Board's clock to Internet
+            network.get_local_time()  # Synchronize board's clock to Internet
         except RuntimeError as e:
             print("CLOCK UPDATE ERROR:", e)
 
