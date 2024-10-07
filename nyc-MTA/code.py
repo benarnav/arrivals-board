@@ -429,17 +429,16 @@ class Arrivals:
                 mta_bullets[0,row] = bullet_index["MTA"]
             return
 
-        rows = min(self.default_rows, len(arrival_data[self.default_direction]))
-
-        if rows == 0:
+        if not arrival_data[self.default_direction]:
             for row in range(2):
                 mta_bullets[0,row] = bullet_index["MTA"]
-            arrival_label_1.text = "-1"
-            arrival_label_2.text = "No Svr"
+            arrival_label_1.text = "No"
+            arrival_label_2.text = "Service"
             return
 
         affected_lines = [alert[0] for alert in arrival_data["alerts"]]
-
+        rows = min(self.default_rows, len(arrival_data[self.default_direction]))
+        
         for i in range(rows):
             self.arrivals_queue[i]["Line"] = arrival_data[self.default_direction][i]["Line"]
             self.arrivals_queue[i]["Arrival"] = arrival_data[self.default_direction][i]["Arrival"]
@@ -659,4 +658,4 @@ while True:
         update_time()
         atmosphere.update_display()
 
-    time.sleep(1)
+    time.sleep(0.5)

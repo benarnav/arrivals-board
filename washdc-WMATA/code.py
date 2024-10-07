@@ -401,14 +401,15 @@ class Arrivals:
                 wmata_bullets[0,row] = bullet_index["WMATA"]
             return
 
-        rows = min(self.default_rows, len(arrival_data[self.default_direction]))
-
-        if rows == 0:
+        if not arrival_data[self.default_direction]:
             for row in range(2):
                 wmata_bullets[0,row] = bullet_index["WMATA"]
-            arrival_label_1.text = "No Srv"
-            arrival_label_2.text = "No Srv"
+            arrival_label_1.text = "No"
+            arrival_label_2.text = "Service"
             return
+
+        affected_lines = [alert[0] for alert in arrival_data["alerts"]]
+        rows = min(self.default_rows, len(arrival_data[self.default_direction]))
 
         affected_lines = [alert[0] for alert in arrival_data["alerts"]]
 
@@ -451,7 +452,7 @@ class Arrivals:
 
         if rows == 1:
             wmata_bullets[0,1] = bullet_index["WMATA"]
-            arrival_label_2.text = "-1"
+            arrival_label_2.text = ""
 
     def alert_text(self, arrival_data):
         if arrival_data is None or arrival_data["alerts"] == []:
