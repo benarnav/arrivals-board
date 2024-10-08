@@ -15,7 +15,7 @@ secrets = {
     "transit_url": "",  # url to your api endpoint on pythonganywhere or other host e.g. https://YOURUSERNAME.pythonanywhere.com/api/wmata-arrivals
     "transit_headers": {
         "api-key": "",  # api key for Flask app
-        "lines": [],  # optional: specify lines to be displayed, if not included will default to show all lines in station_ids
-        "station_ids": "",  # station code from https://developer.wmata.com/docs/services/5476364f031f590f38092507/operations/5476364f031f5909e4fe3311?
+        "lines": "",  # optional: specify lines to be displayed, if not included will default to show all lines in station-ids. NB: write lines separated by commas WITHOUT spaces. eg: "blue,silver"
+        "station-ids": "",  # station code from the WMATA developer portal or search in `station_dict.py`
     },  # For multiple stations (eg L'Enfant Plaza), separate with comma and no spaces
 }

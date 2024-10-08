@@ -55,6 +55,7 @@ These are the components I used in my build:
     - adafruit_lis3dh.mpy
     - adafruit_requests.mpy
     - neopixel.mpy
+    - adafruit_ticks.mpy
 
 2. If you are setting this up in Washington, DC, [sign up](https://developer.wmata.com) for a developer account and get an API key. 
 3. Create an API key for your `Flask` app, it can be anything, it just has to match when making requests.

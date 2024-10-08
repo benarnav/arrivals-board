@@ -251,7 +251,7 @@ class WMATA_ArrivalsResource(Resource):
         args = parser.parse_args()
         api_key = args["api-key"]
         station_ids = list(args["station-ids"].split(","))
-        if args["lines"] is not None and args["lines"] != []:
+        if args["lines"] is not None and args["lines"] != "":
             lines = list(args["lines"].split(","))
             lines = [line.upper() for line in lines]
         else:
