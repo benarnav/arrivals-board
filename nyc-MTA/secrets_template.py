@@ -16,7 +16,7 @@ secrets = {
         {
             "api-key": "",  # api key for Flask app
             "station-ids": "",  # required, find ids in `station_dict.py` or the stops.txt from http://web.mta.info/developers/data/nyct/subway/google_transit.zip
-            "subway-lines": "",  # Subway lines to be displayed, separated by a comma and WITHOUT spaces
+            "subway-lines": "",  # Subway lines to be displayed, separated by a comma and WITHOUT spaces. eg: "2,3" or "N,R"
         } 
     ], # For multiple stations, add an additional dictionary to this list
 }  
