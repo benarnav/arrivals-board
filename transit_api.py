@@ -118,6 +118,12 @@ class WMATA:
         }
         self.feed = gtfs_realtime_pb2.FeedMessage()
         self.directions = {0: "NE", 1: "SW"}
+        self.line_codes = {"GR":"GREEN",
+                           "OR":"ORANGE",
+                           "RD":"RED",
+                           "SV":"SILVER",
+                           "BL":"BLUE",
+                           "YL":"YELLOW"}
 
     def get_arrivals(self, station_ids, lines):
         response = requests.get(
@@ -177,9 +183,11 @@ class WMATA:
         try:
             alerts = r.json()
             if alerts["Incidents"] != []:
-                for alert in alerts:
-                    for line in lines:
-                        if line in alert["Description"].upper():
+                for alert in alerts["Incidents"]:
+                    affected_lines = set([self.line_codes[l] for l in alert["LinesAffected"].split(";") if l])
+                    matching_lines = affected_lines & lines 
+                    if matching_lines:
+                        for line in matching_lines:
                             alert_data.append((line, alert["Description"]))
 
         except Exception as e:
@@ -258,7 +266,7 @@ class WMATA_ArrivalsResource(Resource):
             lines = []
             for station in station_ids:
                 lines += wmata_stations[station]["Lines"]
-
+        lines = set(lines)
         if not validate_api_key(api_key):
             return {"error": "Invalid API key"}, 401  # Unauthorized
 
