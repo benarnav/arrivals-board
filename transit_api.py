@@ -16,8 +16,7 @@ def validate_api_key(api_key):
 
 
 class MTA:
-    def __init__(self) -> None:
-        self.urls = {
+    ARRIVAL_URLS = {
             "A,C,E": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace",
             "B,D,F,M": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm",
             "G": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g",
@@ -27,16 +26,17 @@ class MTA:
             "1,2,3,4,5,6,7": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
             "SIR": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-si",
         }
-        self.alerts_url="https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Fsubway-alerts.json"
+    ALERTS_URL = "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Fsubway-alerts.json"
+    def __init__(self) -> None:
         self.feed = gtfs_realtime_pb2.FeedMessage()
         
     def get_arrivals(self, station_ids, subway_lines):
         arrivals_data = {"North": [], "South": [], "alerts": []}
 
         for line in subway_lines:
-            for url in self.urls:
+            for url in MTA.ARRIVAL_URLS:
                 if line in url:
-                    response = requests.get(self.urls[url])
+                    response = requests.get(MTA.ARRIVAL_URLS[url])
                     self.feed.ParseFromString(response.content)
                     now = time.time()
                     for entity in self.feed.entity:
@@ -85,7 +85,7 @@ class MTA:
         now = int(time.time())
 
         try:
-            response = requests.get(self.alerts_url, timeout=5)
+            response = requests.get(MTA.ALERTS_URL, timeout=5)
             response.raise_for_status()
             data = response.json()
             
@@ -119,24 +119,24 @@ class MTA:
 
 
 class WMATA:
+    ARRIVALS_URL="https://api.wmata.com/gtfs/rail-gtfsrt-tripupdates.pb"
+    ALERTS_URL="https://api.wmata.com/Incidents.svc/json/Incidents"
+    DIRECTIONS = {0: "NE", 1: "SW"}
+    LINE_CODES = {"GR":"GREEN",
+                "OR":"ORANGE",
+                "RD":"RED",
+                "SV":"SILVER",
+                "BL":"BLUE",
+                "YL":"YELLOW"}
     def __init__(self, wmata_key) -> None:
         self.headers = {
             "api_key": wmata_key,
         }
         self.feed = gtfs_realtime_pb2.FeedMessage()
-        self.directions = {0: "NE", 1: "SW"}
-        self.line_codes = {"GR":"GREEN",
-                           "OR":"ORANGE",
-                           "RD":"RED",
-                           "SV":"SILVER",
-                           "BL":"BLUE",
-                           "YL":"YELLOW"}
+        
 
     def get_arrivals(self, station_ids, lines):
-        response = requests.get(
-            "https://api.wmata.com/gtfs/rail-gtfsrt-tripupdates.pb",
-            headers=self.headers,
-        )
+        response = requests.get(WMATA.ARRIVALS_URL,headers=self.headers)
         self.feed.ParseFromString(response.content)
         arrivals_data = {"NE": [], "SW": [], "alerts": []}
 
@@ -157,7 +157,7 @@ class WMATA:
                             if arrival < 0 or arrival > 200:
                                 continue
                             trip_data["Line"] = entity.trip_update.trip.route_id
-                            trip_data["NE-SW"] = self.directions[
+                            trip_data["NE-SW"] = WMATA.DIRECTIONS[
                                 entity.trip_update.trip.direction_id
                             ]
                             trip_data["Direction"] = wmata_stations[
@@ -183,15 +183,13 @@ class WMATA:
         return arrivals_data
 
     def get_alerts(self, lines):
-        r = requests.get(
-            "https://api.wmata.com/Incidents.svc/json/Incidents", headers=self.headers
-        )
+        r = requests.get(WMATA.ALERTS_URL, headers=self.headers)
         alert_data = []
         try:
             alerts = r.json()
             if alerts["Incidents"] != []:
                 for alert in alerts["Incidents"]:
-                    affected_lines = set([self.line_codes[l] for l in alert["LinesAffected"].split(";") if l])
+                    affected_lines = set([WMATA.LINE_CODES[l] for l in alert["LinesAffected"].split(";") if l])
                     matching_lines = affected_lines & lines 
                     if matching_lines:
                         for line in matching_lines:
@@ -230,8 +228,8 @@ class MTA_ArrivalsResource(Resource):
 
         args = parser.parse_args()
         api_key = args["api-key"]
-        subway_lines = set(args["subway-lines"].split(","))
-        station_ids = list(args["station-ids"].split(","))
+        subway_lines = {l.strip() for l in args["subway-lines"].split(",")}
+        station_ids = {id.strip() for id in args["station-ids"].split(",")}
 
         if not validate_api_key(api_key):
             return {"error": "Invalid API key"}, 401  # Unauthorized
@@ -265,17 +263,23 @@ class WMATA_ArrivalsResource(Resource):
 
         args = parser.parse_args()
         api_key = args["api-key"]
-        station_ids = list(args["station-ids"].split(","))
-        if args["lines"] is not None and args["lines"] != "":
-            lines = list(args["lines"].split(","))
-            lines = [line.upper() for line in lines]
-        else:
-            lines = []
-            for station in station_ids:
-                lines += wmata_stations[station]["Lines"]
-        lines = set(lines)
         if not validate_api_key(api_key):
             return {"error": "Invalid API key"}, 401  # Unauthorized
+        
+        station_ids = set(args["station-ids"].split(","))
+        # if args["lines"] is not None and args["lines"] != "":
+        #     lines = [l.strip().upper() for l in args["lines"].split(",")]
+        # else:
+        #     lines = []
+        #     for station in station_ids:
+        #         lines += wmata_stations[station]["Lines"]
+        # lines = set(lines)
+        lines = (
+                {l.strip().upper() for l in args["lines"].split(",")} 
+                if args.get("lines")
+                else {line for station in station_ids for line in wmata_stations[station]["Lines"]}
+                )
+
 
         wmata_key = envar["wmata_key"]
         wmata = WMATA(wmata_key)
