@@ -322,18 +322,8 @@ class Arrivals:
 
     def api_call(self):
         try:
-            if len(self.headers) == 1:
-                arrival_data = network.fetch_data(self.url, json_path=[], headers=self.headers[0])
-            else:
-                arrival_data = {"North": [], "South": [], "alerts": []}
+            arrival_data = network.fetch_data(self.url, json_path=[], headers=self.headers)
 
-                for i in range(len(self.headers)):
-                    data = network.fetch_data(self.url, json_path=[], headers=self.headers[i])
-                    arrival_data["North"] += data["North"]
-                    arrival_data["North"] = sorted(arrival_data["North"], key=lambda x: x["Arrival"])
-
-                    arrival_data["South"] += data["South"]
-                    arrival_data["South"] = sorted(arrival_data["South"], key=lambda x: x["Arrival"])
         except Exception as e:
             print("Arrival API call ERROR:", e)
             return None

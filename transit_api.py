@@ -272,7 +272,6 @@ class WMATA_ArrivalsResource(Resource):
                 else {line for station in station_ids for line in wmata_stations[station]["Lines"]}
                 )
 
-
         wmata_key = envar["wmata_key"]
         wmata = WMATA(wmata_key)
         arrivals = wmata.get_arrivals(station_ids, lines)
