@@ -27,8 +27,9 @@ class MTA:
             "1,2,3,4,5,6,7": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
             "SIR": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-si",
         }
+        self.alerts_url="https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Fsubway-alerts.json"
         self.feed = gtfs_realtime_pb2.FeedMessage()
-
+        
     def get_arrivals(self, station_ids, subway_lines):
         arrivals_data = {"North": [], "South": [], "alerts": []}
 
@@ -81,34 +82,40 @@ class MTA:
         return arrivals_data
 
     def get_alerts(self, subway_lines):
-        url = "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Fsubway-alerts.json"
-        response = requests.get(url)
-        active_alerts = []
         now = int(time.time())
 
-        if response.status_code == 200:
-            alert_data = response.json()
-            for alert in alert_data["entity"]:
-                for alert_time in alert["alert"]["active_period"]:
-                    try:
-                        if alert_time["start"] < now and alert_time["end"] > now:
-                            affected_line = alert["alert"]["informed_entity"][0][
-                                "route_id"
-                            ]
-                            if affected_line in subway_lines:
-                                # print(alert['alert']['header_text']['translation'][0]['text'])
-                                alert_text = alert["alert"]["header_text"][
-                                    "translation"
-                                ][0]["text"].replace("\n", " ")
-                                alert_text = alert_text.replace("  ", " ")
-                                active_alerts.append((affected_line, alert_text))
-                    except:
+        try:
+            response = requests.get(self.alerts_url, timeout=5)
+            response.raise_for_status()
+            data = response.json()
+            
+            active_alerts = []
+            for alert in data.get("entity", []):
+                try:
+                    alert_info = alert["alert"]
+                    route_id = alert_info["informed_entity"][0]["route_id"]
+                    
+                    if route_id not in subway_lines:
                         continue
-        else:
-            error_msg = f"Error: {response.status_code} - {response.text}"
-            return error_msg
-
-        return active_alerts
+                        
+                    for period in alert_info["active_period"]:
+                        if period["start"] < now < period["end"]:
+                            alert_text = alert_info["header_text"]["translation"][0]["text"]
+                            active_alerts.append((route_id, alert_text.replace("\n", " ").strip()))
+                            break
+                            
+                except (KeyError, IndexError) as e:
+                    print(f"Error parsing response: {str(e)}")
+                    continue
+                    
+            return active_alerts
+            
+        except requests.RequestException as e:
+            print(f"Error: {str(e)}")
+            return
+        except ValueError as e:
+            print(f"Error parsing response: {str(e)}")
+            return
 
 
 class WMATA:
@@ -223,7 +230,7 @@ class MTA_ArrivalsResource(Resource):
 
         args = parser.parse_args()
         api_key = args["api-key"]
-        subway_lines = list(args["subway-lines"].split(","))
+        subway_lines = set(args["subway-lines"].split(","))
         station_ids = list(args["station-ids"].split(","))
 
         if not validate_api_key(api_key):
