@@ -76,7 +76,7 @@ These are the components I used in my build:
 
 If you used a Matrixportal S3, it has three buttons built into the board. From top to bottom they are: `RESET`, `UP` and `DOWN`. Here is the current functionality of each button:
 
-- `RESET` will reset the device and will reload the code, it's useful in case the board looses its wi-fi connection or other error.
+- `RESET` will reset the device and will reload the code, it's useful in case the board looses its wi-fi connection or other errors.
 - `UP` will change the display to show the next four trains in both directions, as seen in the example gif above.
 - `DOWN` scrolls any active alerts on the lines selected during setup.
 
