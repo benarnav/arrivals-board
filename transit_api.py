@@ -232,9 +232,7 @@ class MTA_ArrivalsResource(Resource):
             return {"error": "Invalid API key"}, 401  # Unauthorized
         subway_lines = {l.strip() for l in args["subway-lines"].split(",")}
         station_ids = {id.strip() for id in args["station-ids"].split(",")}
-
-        
-
+      
         mta = MTA()
         arrivals = mta.get_arrivals(station_ids=station_ids, subway_lines=subway_lines)
 
