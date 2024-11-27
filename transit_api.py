@@ -228,11 +228,12 @@ class MTA_ArrivalsResource(Resource):
 
         args = parser.parse_args()
         api_key = args["api-key"]
+        if not validate_api_key(api_key):
+            return {"error": "Invalid API key"}, 401  # Unauthorized
         subway_lines = {l.strip() for l in args["subway-lines"].split(",")}
         station_ids = {id.strip() for id in args["station-ids"].split(",")}
 
-        if not validate_api_key(api_key):
-            return {"error": "Invalid API key"}, 401  # Unauthorized
+        
 
         mta = MTA()
         arrivals = mta.get_arrivals(station_ids=station_ids, subway_lines=subway_lines)
@@ -267,13 +268,6 @@ class WMATA_ArrivalsResource(Resource):
             return {"error": "Invalid API key"}, 401  # Unauthorized
         
         station_ids = set(args["station-ids"].split(","))
-        # if args["lines"] is not None and args["lines"] != "":
-        #     lines = [l.strip().upper() for l in args["lines"].split(",")]
-        # else:
-        #     lines = []
-        #     for station in station_ids:
-        #         lines += wmata_stations[station]["Lines"]
-        # lines = set(lines)
         lines = (
                 {l.strip().upper() for l in args["lines"].split(",")} 
                 if args.get("lines")
