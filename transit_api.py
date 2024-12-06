@@ -89,7 +89,7 @@ class MTA:
             response.raise_for_status()
             data = response.json()
             
-            active_alerts = []
+            active_alerts = set()
             for alert in data.get("entity", []):
                 try:
                     alert_info = alert["alert"]
@@ -101,7 +101,7 @@ class MTA:
                     for period in alert_info["active_period"]:
                         if period["start"] < now < period["end"]:
                             alert_text = alert_info["header_text"]["translation"][0]["text"]
-                            active_alerts.append((route_id, alert_text.replace("\n", " ").strip()))
+                            active_alerts.add(alert_text.replace("\n", " ").strip())
                             break
                             
                 except (KeyError, IndexError) as e:
@@ -184,7 +184,7 @@ class WMATA:
 
     def get_alerts(self, lines):
         r = requests.get(WMATA.ALERTS_URL, headers=self.headers)
-        alert_data = []
+        alert_data = set()
         try:
             alerts = r.json()
             if alerts["Incidents"] != []:
@@ -193,7 +193,7 @@ class WMATA:
                     matching_lines = affected_lines & lines 
                     if matching_lines:
                         for line in matching_lines:
-                            alert_data.append((line, alert["Description"]))
+                            alert_data.add(alert["Description"])
 
         except Exception as e:
             return f"Alerts Error: {e}"

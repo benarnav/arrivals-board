@@ -477,7 +477,7 @@ class Arrivals:
         i = 1
         alert_string = ""
         for alert in arrival_data["alerts"]:
-            alert_string += "{num}.{alert_txt} ".format(num=str(i), alert_txt=alert[1])
+            alert_string += "{num}.{alert_txt} ".format(num=str(i), alert_txt=alert)
             i += 1
 
         return alert_string
