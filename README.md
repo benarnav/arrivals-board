@@ -44,7 +44,7 @@ These are the components I used in my build:
 
 ### Software
 
-1. Follow the [instructions on this page](https://learn.adafruit.com/adafruit-matrixportal-s3/prep-the-matrixportal) to prepared the display and install CircuitPython. Download the [library files](https://circuitpython.org/libraries) here. Ensure the following are placed inside the `lib` folder when installing libraries:
+1. Follow the [instructions on this page](https://learn.adafruit.com/adafruit-matrixportal-s3/prep-the-matrixportal) to prepared the display and install CircuitPython. Download the [library files](https://circuitpython.org/libraries). Ensure the following are placed inside the `lib` folder when installing libraries:
     - adafruit_bitmap_font/
     - adafruit_bus_device/
     - adafruit_display_shapes/
