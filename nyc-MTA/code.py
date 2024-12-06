@@ -511,10 +511,8 @@ def update_time(*, hours=None, minutes=None, show_colon=False):
 
     clock_label.text = "{hours:02d}:{minutes:02d}".format(
         hours=hours, minutes=minutes)
-    #bbx, bby, bbwidth, bbh = clock_label.bounding_box
 
     if DEBUG:
-        print("Label bounding box: {},{},{},{}".format(bbx, bby, bbwidth, bbh))
         print("Label x: {} y: {}".format(clock_label.x, clock_label.y))
 
 def change_screen():
