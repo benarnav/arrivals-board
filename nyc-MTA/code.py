@@ -233,6 +233,10 @@ class Atmosphere:
     def weather_api(self):
         try:
             weather = network.fetch_data(self.openweather_url, json_path=[])
+            print("\n=== Calling Weather API ===")
+            print(f"URL: {self.openweather_url}")
+            print("Weather Data Retrieved:")
+            print(weather)
         except Exception as e:
             print("Weather api call error: ", e)
             return None
@@ -245,6 +249,10 @@ class Atmosphere:
     def aqi_api(self):
         try:
             aqi = network.fetch_data(self.iqair_url, json_path=["data", "current", "pollution"])
+            print("\n=== Calling AQI API ===")
+            print(f"URL: {self.iqair_url}")
+            print("AQI Data Retrieved:")
+            print(aqi)
         except Exception as e:
             print("AQI api call error: ", e)
             return None
@@ -321,8 +329,14 @@ class Arrivals:
             mta_bullets[0,row] = bullet_index["MTA"]
 
     def api_call(self):
+        print("\n=== Calling MTA Arrivals API ===")
+        print(f"URL: {self.url}")
+        print(f"Headers: {self.headers}")
         try:
             arrival_data = network.fetch_data(self.url, json_path=[], headers=self.headers)
+            print("API Call Successful!")
+            print("Raw API Response:")
+            print(arrival_data)
 
         except Exception as e:
             print("Arrival API call ERROR:", e)
@@ -450,6 +464,8 @@ class Arrivals:
 
             elif row == 1:
                 arrival_label_2.text = arrival_time
+
+            print(f"Row {row+1} → Line: {train['Line']} | Arrival: {train['Arrival']} min | Alert: {train['ALERT']}")
 
             if train["ALERT"] is True and bullet_alert_flag is True:
                 if train["FLASH"]:
