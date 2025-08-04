@@ -11,6 +11,7 @@ secrets = {
     "aio_key": "",  # adafruit key
     "latitude": "",  # latitude where unit is located
     "longitude": "",  # latitude where unit is located
+    "default_direction": "",  # Pick either North or South
     "transit_url": "",  # url to your api endpoint on pythonganywhere or other host e.g. https://YOURUSERNAME.pythonanywhere.com/api/mta-arrivals
     "transit_headers": {
             "api-key": "",  # api key for Flask app
