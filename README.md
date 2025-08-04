@@ -71,7 +71,8 @@ These are the components I used in my build:
 7. Download and fill out the fields in `secrets_template.py` according to the inline instructions.
 8. Rename `secrets_template.py` to `secrets.py` and copy it to the root directory.
 9. Copy the `code.py` to the root directory.
-10. Enjoy not waiting on the platform.
+10. It is best practice to use a serial monitor (Ex. from the Arduino IDE) to ensure the code is running correctly before attaching the LED Matrix display as computer supplied USB-C power is often not enough to power the board and display. This can make it appear that the code is failing when the issue may actually be insufficient power.
+11. Enjoy not waiting on the platform.
 
 ## Features
 
