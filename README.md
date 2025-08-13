@@ -41,6 +41,7 @@ These are the components I used in my build:
 - 64x32 RGB LED Matrix display - 4mm pitch, similar to [this one](https://www.adafruit.com/product/2278)
 - A [diffusion panel](https://www.adafruit.com/product/4749)
 - Wall power adapter to USB C (5V 2.5A), similar to [this one](https://www.adafruit.com/product/1995). Note: the linked adapter also requires a Micro B USB to USB C [adapter](https://www.adafruit.com/product/4299). If it's out of stock, it is also [available here](https://www.digikey.com/en/products/detail/adafruit-industries-llc/1995/7902284).
+- [UGLU Adhesive Dashes](https://www.amazon.com/Glu-Dashes-160/dp/B007GCRKBM/ref=sr_1_3) used to adhere the diffusion panel to the LED Matrix display. Adafruit recommended.
 
 ### Software
 
@@ -62,7 +63,7 @@ These are the components I used in my build:
     - neopixel.mpy
     - adafruit_ticks.mpy
 
-2. If you are setting this up in Washington, DC, [sign up](https://developer.wmata.com) for a developer account and get an API key.
+2. If you are setting this up in Washington, DC, [sign up](https://developer.wmata.com) for a developer account and get an API key. If you are setting this up for NYC, no API key is necessary.
 3. Create an API key for your `Flask` app, it can be anything, it just has to match when making requests.
 4. Sign up for a an account on pythonanywhere.com and [follow these instructions](https://help.pythonanywhere.com/pages/Flask/) to deploy the `Flask` [app in the repo](https://github.com/benarnav/arrivals-board/blob/main/transit_api.py) (the file called `transit_api.py`). Make sure to fill in your API keys in the `envar_template.py` and then rename it to `envar.py` before uploading it to pythonanywhere. Finally, upload `station_dict.py` to the same directory as `transit_api.py` and `envar.py` on pythonanywhere.com.
 5. Copy the `fonts` folder to the root directory on the Matrixportal.
@@ -70,7 +71,8 @@ These are the components I used in my build:
 7. Download and fill out the fields in `secrets_template.py` according to the inline instructions.
 8. Rename `secrets_template.py` to `secrets.py` and copy it to the root directory.
 9. Copy the `code.py` to the root directory.
-10. Enjoy not waiting on the platform.
+10. It is best practice to use a serial monitor (Ex. from the Arduino IDE) to ensure the code is running correctly before attaching the LED Matrix display as computer supplied USB-C power is often not enough to power the board and display. This can make it appear that the code is failing when the issue may actually be insufficient power.
+11. Enjoy not waiting on the platform.
 
 ## Features
 
