@@ -1,6 +1,6 @@
 # Arrivals Board for NYC Subway
 
-These files power a 64x32 RGB matrix display that shows arrival times for the New York City Subway or the Washington DC Metro Rail. I am currently using an Adafruit Matrixportal S3 micocontroller. It was vaguely inspired by Tidbyt products, but mostly just the form factor. You can [find instructions](#setup) on how to set this up yourself at the bottom.
+These files power a 64x32 RGB matrix display that shows arrival times for the New York City Subway, the Washington DC Metro Rail, or BART in the San Francisco Bay Area (see [sf-BART/README.md](sf-BART/README.md); BART needs no `Flask` app). I am currently using an Adafruit Matrixportal S3 micocontroller. It was vaguely inspired by Tidbyt products, but mostly just the form factor. You can [find instructions](#setup) on how to set this up yourself at the bottom.
 
 <img src="/example.jpg" alt="example">
 
@@ -63,7 +63,7 @@ These are the components I used in my build:
     - neopixel.mpy
     - adafruit_ticks.mpy
 
-2. If you are setting this up in Washington, DC, [sign up](https://developer.wmata.com) for a developer account and get an API key. If you are setting this up for NYC, no API key is necessary.
+2. If you are setting this up in Washington, DC, [sign up](https://developer.wmata.com) for a developer account and get an API key. If you are setting this up for NYC, no API key is necessary. For BART, follow [sf-BART/README.md](sf-BART/README.md) instead of steps 3 and 4: the board reads BART's API directly.
 3. Create an API key for your `Flask` app, it can be anything, it just has to match when making requests.
 4. Sign up for a an account on pythonanywhere.com and [follow these instructions](https://help.pythonanywhere.com/pages/Flask/) to deploy the `Flask` [app in the repo](https://github.com/benarnav/arrivals-board/blob/main/transit_api.py) (the file called `transit_api.py`). Make sure to fill in your API keys in the `envar_template.py` and then rename it to `envar.py` before uploading it to pythonanywhere. Finally, upload `station_dict.py` to the same directory as `transit_api.py` and `envar.py` on pythonanywhere.com.
 5. Copy the `fonts` folder to the root directory on the Matrixportal.
