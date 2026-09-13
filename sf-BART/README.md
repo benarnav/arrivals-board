@@ -1,10 +1,10 @@
 # Arrivals Board for BART (San Francisco Bay Area)
 
-The BART version talks to BART's real-time API directly from the MatrixPortal. There is no
-`Flask` proxy and no PythonAnywhere account: BART publishes its predictions as small JSON
-documents (2 to 5 KB per station), so the board fetches and filters them itself. Everything
-else (clock, weather, AQI, the two screens, the buttons) works exactly like the NYC and DC
-versions described in the [main README](../README.md).
+Like the other cities, everything runs on the MatrixPortal. BART publishes its predictions
+as small JSON documents (2 to 5 KB per station), so no GTFS-Realtime decoder is needed: the
+board fetches and filters them itself. Everything else (clock, weather, AQI, the two screens,
+the buttons) works exactly like the NYC and DC versions described in the
+[main README](../README.md).
 
 ## Files
 
