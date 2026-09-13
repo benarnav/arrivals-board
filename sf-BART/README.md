@@ -13,7 +13,6 @@ the buttons) works exactly like the NYC and DC versions described in the
 | `secrets_template.py` | Fill in, rename to `secrets.py`, copy to the root. |
 | `gtsr4.pem` | Root certificate for `api.bart.gov` (see below). Copy to the root. |
 | `img/` | Line bullets, direction arrows, AQI icons. Copy the folder to the root. |
-| `tests/` | Desktop tests for `bart.py`; not needed on the board. |
 
 Fonts and libraries are the same as the other cities: copy the repository's `fonts` folder
 and install the library list from the main README (`adafruit_requests` and
@@ -75,15 +74,6 @@ board says so on the serial console and uses the bundle only. `gtsr4.pem` is Goo
 https://pki.goog/repo/certs/gtsr4.pem (SHA-256 fingerprint
 `349DFA4058C5E263123B398AE795573C4E1313C83FE68F93556CD5E8031B3C7D`). Weather and AQI keep
 using the firmware bundle.
-
-## Tests
-
-```bash
-python3 -m unittest discover -s sf-BART/tests
-```
-
-The fixtures are real API responses captured on 2026-09-11 and 2026-09-12 (16th St Mission,
-Embarcadero, a station with no data, a bad key, and advisories present and absent).
 
 ## Notes on the data
 
