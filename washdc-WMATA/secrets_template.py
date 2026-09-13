@@ -4,11 +4,11 @@
 secrets = {
     "ssid": "",  # wifi network name
     "password": "",  # wifi password
-    "timezone": "",  # http://worldtimeapi.org/timezones e.g. America/New_York
+    "timezone": "",  # IANA time zone name, e.g. America/New_York (list: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
     "openweather_key": "",  # api key from https://openweathermap.org/api
     "iqair_key": "",  # api key from https://www.iqair.com/us/air-quality-monitors/api
-    "aio_username": "",  # username from https://accounts.adafruit.com/users/sign_in
-    "aio_key": "",  # adafruit key
+    "aio_username": "",  # Adafruit IO username from https://io.adafruit.com; the account is only used to set the clock
+    "aio_key": "",  # Adafruit IO Active Key
     "latitude": "",  # latitude where unit is located
     "longitude": "",  # longitude where unit is located
     "default_direction": "",  # "NE" or "SW", the rough direction of travel
