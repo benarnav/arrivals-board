@@ -1,6 +1,5 @@
 """NYC Subway data layer: turns decoded MTA GTFS-Realtime feeds into the dictionary
-code.py displays. No network or display imports, so it also runs on a desktop
-for the tests in tests/.
+the board displays. No network or display imports, so it also runs on a desktop.
 
 MTA publishes one TripUpdates feed per group of lines and one Alerts feed for
 the whole subway; none of them need an API key (https://api.mta.info/).
