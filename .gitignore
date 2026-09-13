@@ -158,3 +158,5 @@ cython_debug/
 
 tests/
 tools/
+# drive-ready folders built by pack.py
+dist/
