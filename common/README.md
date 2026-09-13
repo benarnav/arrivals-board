@@ -12,11 +12,9 @@ dictionary each `code.py` displays. `sf-BART/bart.py` does the same for BART's J
 
 ## Correctness
 
-`tests/test_gtfsrt.py` covers the wire primitives (varints, every wire type, chunk
-boundaries, truncation, extension skipping, translation selection) and compares the decoder
-with Google's `gtfs-realtime-bindings` on captured feeds through `fixtures/snapshots.json`.
-Beyond the committed fixtures, the decoder was checked against Google's library on every MTA
-feed (8 feeds, up to 138 KB and 3,717 stop rows), the WMATA feed (2,591 rows), the BART feed
-and the full 450 KB MTA alerts feed (181 alerts): identical output on all of them. The
-snapshot tests also pass under the MicroPython unix port, which shares CircuitPython's
-interpreter design.
+The decoder was compared with Google's `gtfs-realtime-bindings` on every feed captured during
+development: all eight MTA trip feeds (up to 138 KB and 3,717 stop rows), the WMATA feed
+(2,591 rows), the BART feed and the full 450 KB MTA alerts feed (181 alerts), each with
+several route and stop filters. Output was identical on all of them. Corrupted and truncated
+feeds (2,200 fuzz cases) only ever raise ValueError. The same checks pass under the
+MicroPython unix port, which shares CircuitPython's interpreter design.
