@@ -1,7 +1,7 @@
 """BART data layer for the arrivals board.
 
 Turns BART Legacy API JSON (the ``etd`` real-time departures command and the
-``bsa`` service advisories command) into the dictionary that code.py displays:
+``bsa`` service advisories command) into the dictionary that the board displays:
 
     {"North": [train, ...], "South": [train, ...], "alerts": [text, ...]}
 
@@ -9,7 +9,7 @@ Turns BART Legacy API JSON (the ``etd`` real-time departures command and the
              "Delay": 0, "Platform": "2", "Alert": False}
 
 Nothing in here touches the network or the display, so the same file runs on
-the MatrixPortal under CircuitPython and on a desktop for the tests in tests/.
+the MatrixPortal under CircuitPython and on a desktop.
 API reference: https://api.bart.gov/docs/etd/etd.aspx and /docs/bsa/bsa.aspx
 """
 
