@@ -1,6 +1,6 @@
 # Arrivals Board for NYC Subway, DC Metro and BART
 
-These files power a 64x32 RGB matrix display that shows arrival times for the New York City Subway, the Washington DC Metro Rail, or BART in the San Francisco Bay Area. Everything runs on the board: no server, no proxy. I am currently using an Adafruit Matrixportal S3 micocontroller. It was vaguely inspired by Tidbyt products, but mostly just the form factor. You can [find instructions](#setup) on how to set this up yourself at the bottom.
+These files power a 64x32 RGB matrix display that shows arrival times for the New York City Subway, the Washington DC Metro Rail, or BART in the San Francisco Bay Area. I am currently using an Adafruit Matrixportal S3 micocontroller. It was vaguely inspired by Tidbyt products, but mostly just the form factor. You can [find instructions](#setup) on how to set this up yourself at the bottom.
 
 <img src="/example.jpg" alt="example">
 
@@ -17,7 +17,7 @@ Originally, I used an Adafruit Matrixportal M4, but it doesn't have enough memor
 
 ## Note on data
 
-The NYC Subway and Washington DC Metro publish their real-time data as GTFS-Realtime protocol buffers. Google's protobuf library does not fit on a microcontroller, so the board uses a small streaming decoder of its own, [common/gtfsrt.py](common/gtfsrt.py), that reads the wire format directly and keeps only the trips and stops it needs. The decoder's working set is a few kilobytes: WMATA's feed streams through it, and the MTA feeds are downloaded gzipped (about 30 KB) and inflated in RAM (about 140 KB) first because that is 4 to 5 times less to transfer. Earlier versions used a `Flask` proxy on PythonAnywhere for this; that is gone. The MTA feeds need no key; WMATA needs a free developer key. BART publishes a small JSON feed and is handled by [sf-BART](sf-BART/README.md). Stations and lines are set in `secrets.py`.
+The NYC Subway and Washington DC Metro publish their real-time data as GTFS-Realtime protocol buffers. Google's protobuf library does not fit on a microcontroller, so the board uses a small streaming decoder of its own, [common/gtfsrt.py](common/gtfsrt.py), that reads the format directly and keeps only the trips and stops it needs. The decoder's working set is a few kilobytes: WMATA's feed streams through it, and the MTA feeds are downloaded gzipped (about 30 KB) and inflated in RAM (about 140 KB) first because that is 4 to 5 times less to transfer. The MTA feeds need no key but WMATA needs a free developer key. BART publishes a small JSON feed and is handled by [sf-BART](sf-BART/README.md). Stations and lines are set in `secrets.py`.
 
 NYC Subway routes are organized into two travel directions: North and South and looking at a map this is fairly easy to figure out which direction you would want displayed. Washington DC's Metro is a little more complex and in the official data feed trains are listed as direction 0 or direction 1. I have mapped these to roughly trains that end in the North or East and ones that end in the South or West.
 
@@ -68,8 +68,8 @@ These are the components I used in my build:
 4. Copy the `img` folder for your selected transit system to the root directory.
 5. Download and fill out the fields in `secrets_template.py` for your city according to the inline instructions. NYC needs the GTFS stop ids of your station with their `N`/`S` suffix (from `stops.txt` in the [MTA GTFS zip](http://web.mta.info/developers/data/nyct/subway/google_transit.zip)) and the lines to show; DC needs the station codes from the WMATA developer portal.
 6. Rename `secrets_template.py` to `secrets.py` and copy it to the root directory.
-7. Copy the city's `code.py` and its data module (`nyc-MTA/mta.py` or `washdc-WMATA/wmata.py`) to the root directory, together with the shared decoder [common/gtfsrt.py](common/gtfsrt.py). DC needs CircuitPython 10 or newer: its certificate bundle includes the root `api.wmata.com` chains to, which 9.2 lacked.
-8. It is best practice to use a serial monitor (Ex. from the Arduino IDE) to ensure the code is running correctly before attaching the LED Matrix display as computer supplied USB-C power is often not enough to power the board and display. This can make it appear that the code is failing when the issue may actually be insufficient power.
+7. Copy the city's `code.py` and its data module (`nyc-MTA/mta.py` or `washdc-WMATA/wmata.py`) to the root directory, together with the shared decoder [common/gtfsrt.py](common/gtfsrt.py). DC needs CircuitPython 10 or newer.
+8. It is best practice to use a serial monitor to ensure the code is running correctly before attaching the LED Matrix display as computer supplied USB-C power is often not enough to power the board and display. This can make it appear that the code is failing when the issue may actually be insufficient power.
 9. Enjoy not waiting on the platform.
 
 ## Features
@@ -79,19 +79,6 @@ If you used a Matrixportal S3, it has three buttons built into the board. From t
 - `RESET` will reset the device and will reload the code, it's useful in case the board looses its wi-fi connection or other errors.
 - `UP` will change the display to show the next four trains in both directions, as seen in the example gif above.
 - `DOWN` scrolls any active alerts on the lines selected during setup.
-
-## Testing and profiling
-
-The data layers are plain Python with no board dependencies, so they are tested on a desktop against real captured feeds:
-
-```bash
-python3 -m unittest discover -s common/tests
-python3 -m unittest discover -s nyc-MTA/tests
-python3 -m unittest discover -s washdc-WMATA/tests
-python3 -m unittest discover -s sf-BART/tests
-```
-
-The decoder's output is checked byte for byte against Google's reference protobuf library (snapshots in `common/tests/fixtures`, regenerated with `common/tools/make_snapshots.py`). `common/tools/profile_decoder.py` times the decoder on the fixtures under CPython or the MicroPython unix port and `--floor` reports the smallest heap it needs; `common/tools/profile_on_board.py` does the same on the MatrixPortal over the serial console, including download times. Set `PROFILE = True` in `nyc-MTA/code.py` or `washdc-WMATA/code.py` to log the timing of every fetch. See [common/README.md](common/README.md) for numbers.
 
 ## License
 
