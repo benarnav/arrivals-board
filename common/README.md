@@ -18,14 +18,3 @@ Three modules live here. `pack.py` at the repository root copies `arrivals_board
   search, keeps only the wanted stop-time updates, and ignores unknown fields (including the
   MTA's extensions) by wire type. Sources can be a byte string or any iterable of chunks such
   as `response.iter_content(4096)`, so a streamed feed never has to be held in memory.
-
-## Correctness
-
-The decoder was compared with Google's `gtfs-realtime-bindings` on every feed captured during
-development: all eight MTA trip feeds (up to 138 KB and 3,717 stop rows), the WMATA feed
-(2,591 rows), the BART feed and the full 450 KB MTA alerts feed (181 alerts), each with
-several route and stop filters. Output was identical on all of them. Corrupted and truncated
-feeds (2,200 fuzz cases) only ever raise ValueError. The same checks pass under the
-MicroPython unix port, which shares CircuitPython's interpreter design. The display logic in
-`arrivals_board.py` and each city's provider are exercised on a desktop against stand-ins for
-the CircuitPython modules, with the captured feeds served by a fake network.
