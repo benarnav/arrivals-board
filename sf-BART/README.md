@@ -8,26 +8,26 @@ the buttons) works exactly like the NYC and DC versions described in the
 
 | File | Purpose |
 |---|---|
-| `code.py` | The display program. Copy to the root of the CIRCUITPY drive. |
-| `bart.py` | Turns BART's JSON into the arrivals the display shows. Copy to the root next to `code.py`. |
-| `secrets_template.py` | Fill in, rename to `secrets.py`, copy to the root. |
-| `gtsr4.pem` | Root certificate for `api.bart.gov` (see below). Copy to the root. |
-| `img/` | Line bullets, direction arrows, AQI icons. Copy the folder to the root. |
+| `code.py` | Three lines: starts the shared program with this city. |
+| `city.py` | BART's sprites, direction names, night hours, startup tiles and the provider that talks to api.bart.gov. |
+| `bart.py` | Turns BART's JSON into the arrivals the display shows. |
+| `secrets_template.py` | Fill in, save as `secrets.py`, copy to the root. |
+| `gtsr4.pem` | Root certificate for `api.bart.gov` (see below). |
+| `img/` | Line bullets, direction arrows, AQI icons. |
 
-Fonts and libraries are the same as the other cities: copy the repository's `fonts` folder
-and install the library list from the main README (`adafruit_requests` and
-`adafruit_connection_manager` are already on it).
+The display program itself is [common/arrivals_board.py](../common/arrivals_board.py) with
+[common/feeds.py](../common/feeds.py); fonts and libraries are the same as the other cities.
 
 ## Setup
 
-1. Prepare the MatrixPortal S3 and CircuitPython as in the main README.
-2. Weather and AQI keys as in the main README. No account is needed for BART: the file ships
-   with BART's public key. Registering your own free key at
-   https://api.bart.gov/api/register.aspx keeps you working if the public key is ever rotated
-   and gets you BART's change notices by email.
-3. Fill in `secrets_template.py`, rename it `secrets.py`, and copy it to the root.
-4. Copy `code.py`, `bart.py`, `gtsr4.pem`, the `img` folder and the repository `fonts` folder to
-   the root of the CIRCUITPY drive.
+1. Prepare the MatrixPortal S3, CircuitPython and the libraries as in the main README, and
+   create the Adafruit IO, OpenWeather and IQAir accounts described there. No account is
+   needed for BART: the template ships with BART's public key. Registering your own free key
+   at https://api.bart.gov/api/register.aspx keeps you working if the public key is ever
+   rotated and gets you BART's change notices by email.
+2. Fill in `secrets_template.py` and save it as `secrets.py`.
+3. From the repository root run `python3 pack.py sf-BART` and copy the contents of
+   `dist/sf-BART/` plus `secrets.py` to the root of the CIRCUITPY drive.
 
 ### BART settings in `secrets.py`
 
@@ -51,7 +51,7 @@ and install the library list from the main README (`adafruit_requests` and
 - The `UP` button shows the next four trains in both directions, as in the other cities.
 - A bullet flashes the alert symbol when a BART service advisory names that line, or when
   the train itself is running five or more minutes late. The `DOWN` button scrolls the
-  advisory text and silences the flashing until the advisories or the flagged trains change.
+  advisory text and silences the flashing until a new advisory appears or another line is late.
   Advisories are system-wide messages, refreshed every two minutes and dropped if they cannot
   be refreshed for 30 minutes; departures refresh every 15 seconds, which is how often BART
   regenerates them.
@@ -59,15 +59,14 @@ and install the library list from the main README (`adafruit_requests` and
   last train the board shows `No Service` for that direction.
 - From 20:00 to 06:00 local time every text label (clock, temperature, AQI number, minutes,
   advisory text) is drawn in red; the line bullets and the AQI icon keep their colors. The
-  hours are the `NIGHT_START` and `NIGHT_END` constants at the top of `code.py`. This uses
-  the board clock, so until the hourly time sync has succeeded the text may be red.
+  hours are `NIGHT_HOURS` in `city.py`, and the rule only applies once the clock has synced.
 
 ## Certificates: why `gtsr4.pem` is there
 
 `api.bart.gov` is served through Cloudflare with a Google Trust Services certificate whose
 chain is anchored, as presented to the board, at a root that CircuitPython 10.3.0 no longer
 ships in its bundle (`GlobalSign Root CA`; earlier releases such as 9.2.x and 10.2.x still have
-it). `code.py` therefore opens its BART connection with the shipped `GTS Root R4` root
+it). `city.py` therefore opens its BART connection with the shipped `GTS Root R4` root
 certificate, which validates the chain on every CircuitPython release, and falls back to the
 firmware's bundle if that ever stops working. If the file is missing or not a certificate the
 board says so on the serial console and uses the bundle only. `gtsr4.pem` is Google's published root from
@@ -80,5 +79,5 @@ using the firmware bundle.
 BART's Legacy API `etd` command and its GTFS-Realtime feed carry the same predictions; a
 side-by-side check of both feeds across every station agreed on 99.7% of estimates, with per-train
 delays identical. BART labels the API "legacy" and points developers at GTFS-RT, but has not
-announced a retirement. If that happens, `bart.py` is the only file that needs a replacement:
-`code.py` only consumes the dictionary it builds.
+announced a retirement. If that happens, `bart.py` and the `Provider` in `city.py` are the only files that need
+changing: `arrivals_board.py` only consumes the dictionary they build.

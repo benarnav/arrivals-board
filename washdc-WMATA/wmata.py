@@ -1,6 +1,6 @@
 """Washington Metrorail data layer: turns WMATA's GTFS-Realtime trip updates and
-its Incidents JSON into the dictionary code.py displays. No network or display
-imports, so it also runs on a desktop for the tests in tests/.
+its Incidents JSON into the dictionary the board displays. No network or display
+imports, so it also runs on a desktop.
 
 Both endpoints need a WMATA developer key sent as the ``api_key`` header
 (https://developer.wmata.com).

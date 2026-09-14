@@ -42,15 +42,20 @@ class StreamReader:
 
     def read(self, size):
         """Exactly ``size`` bytes, or fewer only at end of input."""
-        while len(self._buf) - self._pos < size and not self._eof:
-            try:
-                chunk = next(self._chunks)
-            except StopIteration:
-                chunk = b""
-            if not chunk:
-                self._eof = True
-                break
-            self._buf = self._buf[self._pos:] + chunk
+        if len(self._buf) - self._pos < size and not self._eof:
+            parts = [self._buf[self._pos:]]
+            have = len(parts[0])
+            while have < size:
+                try:
+                    chunk = next(self._chunks)
+                except StopIteration:
+                    chunk = b""
+                if not chunk:
+                    self._eof = True
+                    break
+                parts.append(chunk)
+                have += len(chunk)
+            self._buf = b"".join(parts)
             self._pos = 0
         out = self._buf[self._pos:self._pos + size]
         self._pos += len(out)
@@ -71,6 +76,8 @@ class StreamReader:
             if value < 0x80:
                 return result
             shift += 7
+            if shift > 63:
+                raise ValueError("varint too long")
 
 
 class BytesReader:
@@ -106,6 +113,8 @@ class BytesReader:
                 self._pos = pos
                 return result
             shift += 7
+            if shift > 63:
+                raise ValueError("varint too long")
 
 
 def make_reader(source):
@@ -129,6 +138,8 @@ def varint(buf, pos):
         if value < 0x80:
             return result, pos
         shift += 7
+        if shift > 63:
+            raise ValueError("varint too long")
 
 
 def skip(buf, pos, wire_type, end=None):
@@ -163,6 +174,23 @@ def _encode_all(values):
     if values is None:
         return None
     return set(value.encode() for value in values)
+
+
+def _stop_needles(stops):
+    """Wire bytes of a StopTimeUpdate.stop_id field per wanted stop: tag 0x22, length, id.
+
+    A trip whose bytes contain none of them cannot stop at a wanted stop, so it can be
+    skipped without scanning its stop-time updates. None when a stop id is too long
+    for a one-byte length (never the case for real ids).
+    """
+    if stops is None:
+        return None
+    needles = []
+    for stop in stops:
+        if len(stop) >= 128:
+            return None
+        needles.append(b"\x22" + bytes([len(stop)]) + stop)
+    return needles
 
 
 def iter_top_level(reader):
@@ -233,7 +261,10 @@ def _stop_time_update(buf, pos, end, stops):
     arrival_span = None
     departure_span = None
     while pos < end:
-        tag, pos = varint(buf, pos)
+        tag = buf[pos]
+        pos += 1
+        if tag >= 0x80:
+            tag, pos = varint(buf, pos - 1)
         field = tag >> 3
         wire_type = tag & 7
         if wire_type == _WT_LENGTH:
@@ -279,7 +310,7 @@ def _trip_descriptor(buf, pos, end):
     return trip_id, route_id, direction_id
 
 
-def _trip_entity(buf, routes, stops, rows):
+def _trip_entity(buf, routes, stops, needles, rows):
     """Decode one FeedEntity; append matching stop rows to ``rows``."""
     pos = 0
     end = len(buf)
@@ -290,20 +321,32 @@ def _trip_entity(buf, routes, stops, rows):
         if field == 3 and wire_type == _WT_LENGTH:
             length, pos = varint(buf, pos)
             stop = _bounded(pos, length, end)
-            _trip_update(buf, pos, stop, routes, stops, rows)
+            _trip_update(buf, pos, stop, routes, stops, needles, rows)
             pos = stop
         else:
             pos = skip(buf, pos, wire_type, end)
 
 
-def _trip_update(buf, pos, end, routes, stops, rows):
+def _has_wanted_stop(buf, pos, end, needles):
+    for needle in needles:
+        if buf.find(needle, pos, end) >= 0:
+            return True
+    return False
+
+
+def _trip_update(buf, pos, end, routes, stops, needles, rows):
+    if needles is not None and not _has_wanted_stop(buf, pos, end, needles):
+        return  # none of the wanted stops appear anywhere in this trip
     trip_id = None
     route_id = None
     direction_id = None
     last_stop = None
     found = []
     while pos < end:
-        tag, pos = varint(buf, pos)
+        tag = buf[pos]
+        pos += 1
+        if tag >= 0x80:
+            tag, pos = varint(buf, pos - 1)
         field = tag >> 3
         wire_type = tag & 7
         if wire_type != _WT_LENGTH:
@@ -344,11 +387,12 @@ def decode_trip_updates(source, routes=None, stops=None):
     reader = make_reader(source)
     routes = _encode_all(routes)
     stops = _encode_all(stops)
+    needles = _stop_needles(stops)
     timestamp = None
     rows = []
     for field, payload in iter_top_level(reader):
         if field == 2:
-            _trip_entity(payload, routes, stops, rows)
+            _trip_entity(payload, routes, stops, needles, rows)
         elif field == 1:
             timestamp = header_timestamp(payload)
     return timestamp, rows
