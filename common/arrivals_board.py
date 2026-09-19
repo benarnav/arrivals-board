@@ -68,6 +68,7 @@ FLASH_ON_MS = 1000
 FLASH_OFF_MS = 8000
 ALERT_SLOT_GAP_MS = 5000  # alerts refresh only this long after a trip fetch, never in the same iteration
 CLOCK_SYNCED_YEAR = 2024  # the RTC starts at 2000; a later year means the time service worked
+ROTATIONS = (0, 180)      # 90/270 would need a portrait layout: every x offset assumes 64 px across
 
 BLACK = 0
 RED = 1
@@ -87,6 +88,20 @@ def load_secrets():
     return secrets
 
 
+def pick_rotation(value):
+    """The display rotation from secrets.py: empty or 0 as built, 180 when the unit hangs upside down."""
+    if isinstance(value, str):
+        value = value.strip()
+    if value in (None, ""):
+        return 0
+    try:
+        rotation = int(value)
+    except (TypeError, ValueError):
+        rotation = None
+    feeds.require(rotation in ROTATIONS, "rotation must be 0 or 180")
+    return rotation
+
+
 def set_color(label, value):
     """Write a label color only when it changes: the setter forces a full redraw."""
     if label.color != value:
@@ -102,10 +117,10 @@ def set_tile(grid, row, index):
 class UI:
     """Every displayio object the board draws, built once from the city's assets."""
 
-    def __init__(self, city):
+    def __init__(self, city, rotation=0):
         displayio.release_displays()
         self.keys = keypad.Keys((board.BUTTON_UP, board.BUTTON_DOWN), value_when_pressed=False, pull=True)
-        matrix = Matrix()
+        matrix = Matrix(rotation=rotation)
         self.display = matrix.display
         self.network = Network(status_neopixel=board.NEOPIXEL, debug=False)
         width = self.display.width
@@ -645,7 +660,7 @@ class Runner:
 def run(city, debug=False, profile=False):
     secrets = load_secrets()
     print("Time will be set for {}".format(secrets["timezone"]))
-    ui = UI(city)
+    ui = UI(city, pick_rotation(secrets.get("rotation")))
     feeds.disable_wifi_sleep()
     provider = city.Provider(secrets, ui.network, profile)
     board_ = Board(city, ui, provider, debug)
