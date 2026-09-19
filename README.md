@@ -64,7 +64,7 @@ These are the components I used in my build:
     - adafruit_ticks.mpy
 
 2. Accounts. The clock is set through Adafruit IO, so create a free account at https://io.adafruit.com and note your username and Active Key. Temperature needs a free [OpenWeather](https://openweathermap.org/api) key and AQI a free [IQAir](https://www.iqair.com/air-quality-monitors/api) key; leave either blank and the display shows `--` for that value. DC also needs a [WMATA developer key](https://developer.wmata.com). NYC needs no transit key. BART ships with BART's public key (see [sf-BART/README.md](sf-BART/README.md)).
-3. Fill out `secrets_template.py` for your city according to the inline instructions and save it as `secrets.py`. NYC needs the GTFS stop ids of your station with their `N`/`S` suffix (from `stops.txt` in the [MTA GTFS zip](https://rrgtfsfeeds.s3.amazonaws.com/gtfs_subway.zip)) and the lines to show; DC needs station codes from the WMATA developer portal; BART needs the four-letter station abbreviation.
+3. Fill out `secrets_template.py` for your city according to the inline instructions and save it as `secrets.py`. NYC needs the GTFS stop ids of your station with their `N`/`S` suffix (from `stops.txt` in the [MTA GTFS zip](https://rrgtfsfeeds.s3.amazonaws.com/gtfs_subway.zip)) and the lines to show; DC needs station codes from the WMATA developer portal; BART needs the four-letter station abbreviation. To hang the unit upside down, which moves the board and its power cable to the other side of the panel, set `rotation` to `180`; the display is flipped in software and nothing else changes.
 4. Build the drive folder for your city and copy its contents to the root of CIRCUITPY, together with `secrets.py`:
 
 ```bash
@@ -77,7 +77,7 @@ python3 pack.py nyc-MTA
 
 ## Features
 
-If you used a Matrixportal S3, it has three buttons built into the board. From top to bottom they are: `RESET`, `UP` and `DOWN`. Here is the current functionality of each button:
+If you used a Matrixportal S3, it has three buttons built into the board. From top to bottom they are: `RESET`, `UP` and `DOWN` (the reverse when the unit hangs upside down with `rotation` set to `180`; the labels still apply). Here is the current functionality of each button:
 
 - `RESET` will reset the device and will reload the code, it's useful in case the board loses its wi-fi connection or other errors.
 - `UP` will change the display to show the next four trains in both directions, as seen in the example gif above.
