@@ -12,6 +12,9 @@ secrets = {
     "latitude": "",  # latitude where unit is located
     "longitude": "",  # longitude where unit is located
     "rotation": "",  # optional: 180 to hang the unit upside down, which moves the board and its power cable to the other side; empty or 0 as built
+    "sleep": "",  # optional: "on" turns the display off overnight; UP or DOWN turns it back on for 20 minutes
+    "sleep_start": "",  # when it turns off, 24-hour HH:MM; empty means 22:00
+    "sleep_end": "",  # when it turns back on, 24-hour HH:MM; empty means 06:00
     "default_direction": "",  # "North" or "South"
     "station_ids": "",  # Required. GTFS stop ids WITH their N/S suffix, comma separated, e.g. "A41N,A41S". Find them in stops.txt from http://web.mta.info/developers/data/nyct/subway/google_transit.zip
     "lines": "",  # Required. Subway lines to show, comma separated, e.g. "A,C" or "2,3", using the feed's ids: SI for Staten Island Railway, GS / FS / H for the 42 St, Franklin Av and Rockaway shuttles. Lines at different stations work as long as their station ids are listed above.
