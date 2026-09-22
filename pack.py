@@ -1,9 +1,10 @@
 """Assemble a drive-ready folder for one city:  python3 pack.py nyc-MTA
 
 Copies everything CIRCUITPY needs into dist/<city>/: the city's code.py, city.py and
-data module, the shared modules from common/, the fonts the code loads and the img
-folder. Drag the folder's contents to the root of the drive, keeping your secrets.py
-and lib/ in place.
+data module, the shared modules from common/, the fonts the code loads, the img folder
+and a secrets.py. The first run copies secrets_template.py as secrets.py for you to fill
+in; later runs keep the secrets.py already in the folder. Drag the folder's contents to
+the root of the drive, keeping lib/ in place.
 """
 import os
 import shutil
@@ -25,6 +26,11 @@ def main():
     city = sys.argv[1]
     root = os.path.dirname(os.path.abspath(__file__))
     out = os.path.join(root, "dist", city)
+    secrets_path = os.path.join(out, "secrets.py")
+    kept = None
+    if os.path.exists(secrets_path):
+        with open(secrets_path, "rb") as f:
+            kept = f.read()  # survives the rebuild below
     shutil.rmtree(out, ignore_errors=True)
     os.makedirs(out)
     for path in ["code.py", "city.py"] + CITIES[city] + SHARED:
@@ -34,6 +40,13 @@ def main():
     os.makedirs(os.path.join(out, "fonts"))
     for font in FONTS:
         shutil.copy(os.path.join(root, "fonts", font), os.path.join(out, "fonts", font))
+    if kept is None:
+        shutil.copy(os.path.join(root, city, "secrets_template.py"), secrets_path)
+        print("new secrets.py from secrets_template.py: fill it in before copying to the board")
+    else:
+        with open(secrets_path, "wb") as f:
+            f.write(kept)
+        print("kept the existing secrets.py")
     print("ready:", os.path.relpath(out, root))
     for name in sorted(os.listdir(out)):
         print("  ", name)

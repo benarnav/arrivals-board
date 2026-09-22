@@ -64,14 +64,14 @@ These are the components I used in my build:
     - adafruit_ticks.mpy
 
 2. Accounts. The clock is set through Adafruit IO, so create a free account at https://io.adafruit.com and note your username and Active Key. Temperature needs a free [OpenWeather](https://openweathermap.org/api) key and AQI a free [IQAir](https://www.iqair.com/air-quality-monitors/api) key; leave either blank and the display shows `--` for that value. DC also needs a [WMATA developer key](https://developer.wmata.com). NYC needs no transit key. BART ships with BART's public key (see [sf-BART/README.md](sf-BART/README.md)).
-3. Fill out `secrets_template.py` for your city according to the inline instructions and save it as `secrets.py`. NYC needs the GTFS stop ids of your station with their `N`/`S` suffix (from `stops.txt` in the [MTA GTFS zip](https://rrgtfsfeeds.s3.amazonaws.com/gtfs_subway.zip)) and the lines to show; DC needs station codes from the WMATA developer portal; BART needs the four-letter station abbreviation. To hang the unit upside down, which moves the board and its power cable to the other side of the panel, set `rotation` to `180`; the display is flipped in software and nothing else changes.
-4. Build the drive folder for your city and copy its contents to the root of CIRCUITPY, together with `secrets.py`:
+3. Build the drive folder for your city, then fill out the `secrets.py` it contains according to the inline instructions (the first run copies it from `secrets_template.py`; later runs keep it):
 
 ```bash
 python3 pack.py nyc-MTA
 ```
 
-   (`washdc-WMATA` or `sf-BART` likewise). The folder holds `code.py`, `city.py`, the city's data module, the shared `arrivals_board.py` and `feeds.py` from `common/` (plus `gtfsrt.py` for NYC and DC and `gtsr4.pem` for BART), the `img` folder and the three fonts. Copying those by hand works too.
+   (`washdc-WMATA` or `sf-BART` likewise). NYC needs the GTFS stop ids of your station with their `N`/`S` suffix (from `stops.txt` in the [MTA GTFS zip](https://rrgtfsfeeds.s3.amazonaws.com/gtfs_subway.zip)) and the lines to show; DC needs station codes from the WMATA developer portal; BART needs the four-letter station abbreviation. To hang the unit upside down, which moves the board and its power cable to the other side of the panel, set `rotation` to `180`; the display is flipped in software and nothing else changes.
+4. Copy the folder's contents to the root of CIRCUITPY. It holds `secrets.py`, `code.py`, `city.py`, the city's data module, the shared `arrivals_board.py` and `feeds.py` from `common/` (plus `gtfsrt.py` for NYC and DC and `gtsr4.pem` for BART), the `img` folder and the three fonts. Copying those by hand works too.
 5. It is best practice to use a serial monitor (e.g. the CircuitPython extension for VS Code) to ensure the code is running correctly before attaching the LED Matrix display as computer supplied USB-C power is often not enough to power the board and display. This can make it appear that the code is failing when the issue may actually be insufficient power. Any mistake in `secrets.py` (a misspelled line, a station id without its suffix, an unknown direction) stops the program at startup with a message naming the field.
 6. Enjoy not waiting on the platform.
 
