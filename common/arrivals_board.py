@@ -119,10 +119,9 @@ def pick_time(secrets, key, default):
 
 def pick_sleep(secrets):
     """None when the display never sleeps, else (start, end) in minutes since midnight."""
-    value = secrets.get("sleep")
-    mode = ("" if value is None else str(value)).strip().lower()
-    feeds.require(mode in ("", "off", "false", "on", "true"), "sleep must be on or off")
-    if mode not in ("on", "true"):
+    value = secrets.get("sleep")  # a secrets.py without the key never sleeps
+    feeds.require(value is None or isinstance(value, bool), "sleep must be True or False")
+    if not value:
         return None
     start = pick_time(secrets, "sleep_start", SLEEP_DEFAULT[0])
     end = pick_time(secrets, "sleep_end", SLEEP_DEFAULT[1])
