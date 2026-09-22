@@ -12,6 +12,9 @@ secrets = {
     "latitude": "",  # latitude where unit is located
     "longitude": "",  # longitude where unit is located
     "rotation": "",  # optional: 180 to hang the unit upside down, which moves the board and its power cable to the other side; empty or 0 as built
+    "sleep": False,  # True turns the display off overnight; UP or DOWN turns it back on for 20 minutes
+    "sleep_start": "",  # when it turns off, 24-hour HH:MM; empty means 22:00
+    "sleep_end": "",  # when it turns back on, 24-hour HH:MM; empty means 06:00
     "default_direction": "",  # "North" or "South". These are BART's route labels, not compass directions: see README
     "bart_station": "",  # four-letter station abbreviation, e.g. "16TH". Full list in README
     "bart_lines": "",  # optional: line colors to show, comma separated, e.g. "RED,YELLOW". Empty shows every line at the station

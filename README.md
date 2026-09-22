@@ -83,6 +83,8 @@ If you used a Matrixportal S3, it has three buttons built into the board. From t
 - `UP` will change the display to show the next four trains in both directions, as seen in the example gif above.
 - `DOWN` scrolls any active alerts on the lines selected during setup, one alert at a time. Fetches run in the gaps between alerts so the text never stalls, the first train's time is refreshed in those gaps, and `UP` still works while it scrolls.
 
+The display can turn itself off overnight: set `sleep` to `True` in `secrets.py` and it goes dark at `sleep_start` (22:00 unless set) and comes back at `sleep_end` (06:00 unless set). While it is off nothing is fetched except the hourly clock sync. Pressing `UP` or `DOWN` turns it on for 20 minutes, and that press does nothing else; every further press while it is on restarts the 20 minutes. Pressing `RESET` at night also leaves it on for 20 minutes. Sleep needs the clock, so after a reboot with Adafruit IO unreachable the display stays on until the time is set.
+
 A city can also turn every text label red between two hours (`NIGHT_HOURS` in its `city.py`; BART uses 20:00 to 06:00) and show custom bullets until the first fetch (`STARTUP_TILES`). Set `profile=True` in `code.py` to print the timing of every transit fetch on the serial console.
 
 ## License

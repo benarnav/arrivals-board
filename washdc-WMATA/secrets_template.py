@@ -12,6 +12,9 @@ secrets = {
     "latitude": "",  # latitude where unit is located
     "longitude": "",  # longitude where unit is located
     "rotation": "",  # optional: 180 to hang the unit upside down, which moves the board and its power cable to the other side; empty or 0 as built
+    "sleep": False,  # True turns the display off overnight; UP or DOWN turns it back on for 20 minutes
+    "sleep_start": "",  # when it turns off, 24-hour HH:MM; empty means 22:00
+    "sleep_end": "",  # when it turns back on, 24-hour HH:MM; empty means 06:00
     "default_direction": "",  # "NE" or "SW", the rough direction of travel
     "wmata_key": "",  # api key from https://developer.wmata.com (the free Default Tier is plenty)
     "station_ids": "",  # Required. Station codes from the WMATA developer portal, comma separated, e.g. "A01,C01" for both levels of Metro Center

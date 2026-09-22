@@ -64,11 +64,13 @@ CLOCK_SYNC_MS = 3600000
 WEATHER_MS = 600000
 AQI_MS = 900000
 RETURN_MS = 1200000       # the four-train screen returns to the main screen after this
+WAKE_MS = 1200000         # a button press while the display sleeps turns it on for this long
 FLASH_ON_MS = 1000
 FLASH_OFF_MS = 8000
 ALERT_SLOT_GAP_MS = 5000  # alerts refresh only this long after a trip fetch, never in the same iteration
 CLOCK_SYNCED_YEAR = 2024  # the RTC starts at 2000; a later year means the time service worked
 ROTATIONS = (0, 180)      # 90/270 would need a portrait layout: every x offset assumes 64 px across
+SLEEP_DEFAULT = ("22:00", "06:00")  # sleep_start and sleep_end when secrets.py leaves them blank
 
 BLACK = 0
 RED = 1
@@ -102,6 +104,42 @@ def pick_rotation(value):
     return rotation
 
 
+def pick_time(secrets, key, default):
+    """A secrets.py HH:MM value (24 hour) as minutes since midnight."""
+    value = secrets.get(key)
+    text = ("" if value is None else str(value)).strip() or default
+    parts = text.split(":")
+    try:
+        hour, minute = int(parts[0]), int(parts[1])
+    except (IndexError, ValueError):
+        hour = minute = -1
+    feeds.require(len(parts) == 2 and 0 <= hour < 24 and 0 <= minute < 60, key + " must be HH:MM (24 hour)")
+    return hour * 60 + minute
+
+
+def pick_sleep(secrets):
+    """None when the display never sleeps, else (start, end) in minutes since midnight."""
+    value = secrets.get("sleep")  # a secrets.py without the key never sleeps
+    feeds.require(value is None or isinstance(value, bool), "sleep must be True or False")
+    if not value:
+        return None
+    start = pick_time(secrets, "sleep_start", SLEEP_DEFAULT[0])
+    end = pick_time(secrets, "sleep_end", SLEEP_DEFAULT[1])
+    feeds.require(start != end, "sleep_start and sleep_end must differ")
+    return (start, end)
+
+
+def in_window(minutes, start, end):
+    """True when a minutes-since-midnight value falls in [start, end); the window may wrap midnight."""
+    if start < end:
+        return start <= minutes < end
+    return minutes >= start or minutes < end
+
+
+def clock_text(minutes):
+    return "{:02d}:{:02d}".format(minutes // 60, minutes % 60)
+
+
 def set_color(label, value):
     """Write a label color only when it changes: the setter forces a full redraw."""
     if label.color != value:
@@ -128,7 +166,7 @@ class UI:
         y_center = height // 2
         ceiling = y_center - 2
 
-        root = displayio.Group()
+        self.root = root = displayio.Group()
         background = displayio.Bitmap(width, height, 4)
         self.palette = displayio.Palette(7)
         self.palette[BLACK] = 0x000000
@@ -226,6 +264,19 @@ class UI:
         self.default_group.hidden = not self.default_group.hidden
         self.arrivals_group.hidden = not self.arrivals_group.hidden
 
+    @property
+    def asleep(self):
+        return self.root.hidden
+
+    def set_asleep(self, asleep):
+        """Blank the panel and stop driving it (brightness 0 pauses the matrix), or bring it back."""
+        if asleep:
+            self.root.hidden = True
+            self.display.brightness = 0
+        else:
+            self.display.brightness = 1
+            self.root.hidden = False
+
     def pause(self, seconds):
         """Sleep in 50 ms slices, returning early when a button event arrives."""
         end = feeds.now_ms() + int(seconds * 1000)
@@ -321,7 +372,7 @@ class Board:
         if now[0] < CLOCK_SYNCED_YEAR:
             return False  # the clock has not been set yet
         start, end = self.night_hours
-        return now[3] >= start or now[3] < end
+        return in_window(now[3] * 60 + now[4], start * 60, end * 60)
 
     def text_color(self, day_index=WHITE):
         return self.ui.color(RED) if self.is_night() else self.ui.color(day_index)
@@ -505,7 +556,7 @@ class Board:
 class Runner:
     """The main loop as a stepper, so one iteration can be driven at a time."""
 
-    def __init__(self, city, ui, provider, board_, atmosphere, secrets, debug=False):
+    def __init__(self, city, ui, provider, board_, atmosphere, secrets, debug=False, sleep=None, boot_hold=True):
         self.city = city
         self.ui = ui
         self.provider = provider
@@ -530,6 +581,8 @@ class Runner:
         self.acknowledged = set()   # the keys the DOWN button has been pressed for
         self.alert_queue = []       # alerts still to scroll after the DOWN button
         self.alert_moving = False   # one alert is on its way across the screen
+        self.sleep = sleep          # None, or (start, end) in minutes since midnight from pick_sleep
+        self.woke_at = feeds.now_ms() if sleep and boot_hold else None  # a boot inside the window counts as a wake press
 
     @property
     def scrolling(self):
@@ -545,21 +598,76 @@ class Runner:
             self.alert_moving = False
             self.ui.alert_label.x = self.ui.display.width
 
+    # ------------------------------------------------------------------ sleep
+    def go_to_sleep(self):
+        ui = self.ui
+        self.stop_scrolling()
+        if ui.default_group.hidden:
+            ui.change_screen()  # wake up on the main screen, as after a WiFi loss
+        self.return_to_default = None
+        ui.keys.events.clear()
+        ui.set_asleep(True)
+        print("Display off until", clock_text(self.sleep[1]))
+
+    def wake(self, now, hold):
+        """Show the main screen again; ``hold`` keeps it on for WAKE_MS inside the sleep window."""
+        ui = self.ui
+        self.woke_at = now if hold else None
+        self.board.update_time()
+        ui.arrival_label_1.text = ""  # last night's minutes stay blank until the fetch that follows
+        ui.arrival_label_2.text = ""
+        ui.set_asleep(False)
+        print("Display on")
+
+    def update_sleep(self, now):
+        """The scheduled transitions; a button wake is handled at the top of step()."""
+        if not self.sleep:
+            return
+        local = time.localtime()
+        if local[0] < CLOCK_SYNCED_YEAR:
+            return  # the clock has not been set yet: nothing changes, a boot hold included
+        inside = in_window(local[3] * 60 + local[4], self.sleep[0], self.sleep[1])
+        if self.ui.asleep:
+            if not inside:
+                self.wake(now, hold=False)
+        elif not inside:
+            self.woke_at = None
+        elif self.due(self.woke_at, WAKE_MS, now):
+            self.go_to_sleep()
+
     def step(self):
         ui = self.ui
+        if ui.asleep:  # before the WiFi check, so an outage cannot swallow the press that wakes the display
+            event = ui.keys.events.get()
+            if event and event.pressed:
+                self.wake(feeds.now_ms(), hold=True)
         if not feeds.ensure_wifi(self.ssid, self.password, on_reconnect=self.provider.reset):
+            self.update_sleep(feeds.now_ms())  # the schedule needs the clock, not the network
+            if ui.asleep:
+                ui.pause(5)  # a press ends the wait; the top of the next step wakes the display on it
+                return
             self.stop_scrolling()  # the LOST message needs the alert row
             self.board.wifi_lost()
             self.atmosphere.update_display(self.board.text_color())  # the scroll may have blanked the weather
             time.sleep(5)  # nothing here handles a press, so no early return
+            if self.woke_at is not None and len(ui.keys.events):
+                self.woke_at = feeds.now_ms()  # a press during the outage still keeps a woken display on
             ui.keys.events.clear()  # presses made during the outage do not replay after reconnect
             return
         now = feeds.now_ms()
         if not self.alert_moving:  # a fetch would freeze moving text: it waits for the gap between alerts
+            self.sync_clock(now)
+        self.update_sleep(now)
+        if ui.asleep:
+            ui.pause(LOOP_SLEEP)
+            return
+        if not self.alert_moving:
             self.run_fetches(now)
             now = feeds.now_ms()  # the fetches block for seconds; the timers below need the current time
         event = ui.keys.events.get()
         if event and event.pressed:
+            if self.woke_at is not None:
+                self.woke_at = now  # a press keeps a woken display on for another WAKE_MS
             if event.key_number == 1:  # DOWN: scroll the alerts one after another
                 self.board.display_alt_text()
                 self.bullet_alert_flag = False
@@ -600,17 +708,19 @@ class Runner:
         else:
             ui.pause(LOOP_SLEEP)
 
-    def run_fetches(self, now):
-        """Every timed network call: clock sync, weather, AQI, arrivals, alerts."""
-        ui = self.ui
+    def sync_clock(self, now):
+        """The hourly time-service sync; it also runs while the display sleeps, so it wakes on time."""
         if self.due(self.clock_check, CLOCK_SYNC_MS, now):
             try:
                 self.board.update_time()
-                ui.network.get_local_time()
+                self.ui.network.get_local_time()
             except Exception as e:  # WiFi or HTTP failures raise OSError, not just RuntimeError
                 print("CLOCK UPDATE ERROR:", e)
             self.clock_check = now
 
+    def run_fetches(self, now):
+        """Every other timed network call: weather, AQI, arrivals, alerts."""
+        ui = self.ui
         if self.due(self.weather_check, WEATHER_MS, now):
             self.atmosphere.weather_api()
             self.weather_check = now
@@ -660,7 +770,11 @@ class Runner:
 def run(city, debug=False, profile=False):
     secrets = load_secrets()
     print("Time will be set for {}".format(secrets["timezone"]))
-    ui = UI(city, pick_rotation(secrets.get("rotation")))
+    rotation = pick_rotation(secrets.get("rotation"))
+    sleep = pick_sleep(secrets)
+    if sleep:
+        print("Display off from {} to {}".format(clock_text(sleep[0]), clock_text(sleep[1])))
+    ui = UI(city, rotation)
     feeds.disable_wifi_sleep()
     provider = city.Provider(secrets, ui.network, profile)
     board_ = Board(city, ui, provider, debug)
@@ -670,6 +784,8 @@ def run(city, debug=False, profile=False):
         ui.network.connect()  # PortalBase's first connect; later drops are handled by feeds.ensure_wifi
     except Exception as e:
         print("WiFi connect failed:", e)
-    runner = Runner(city, ui, provider, board_, atmosphere, secrets, debug)
+    # a reload after repeated fetch failures must not keep granting 20 minutes of light all night
+    boot_hold = supervisor.runtime.run_reason != supervisor.RunReason.SUPERVISOR_RELOAD
+    runner = Runner(city, ui, provider, board_, atmosphere, secrets, debug, sleep, boot_hold)
     while True:
         runner.step()
